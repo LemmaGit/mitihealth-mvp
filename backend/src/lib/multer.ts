@@ -1,0 +1,16 @@
+import type { Request } from "express";
+import multer from "multer";
+import path from "path";
+
+const storage = multer.memoryStorage();
+
+export const upload = multer({
+  storage,
+  fileFilter: (req: Request, file: File, cb: any) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (![".png", ".jpg", ".jpeg", ".gif"].includes(ext)) {
+      return cb(new Error("Only images are allowed"), false);
+    }
+    cb(null, true);
+  },
+});

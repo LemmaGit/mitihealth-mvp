@@ -1,17 +1,20 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import httpStatus from "http-status";
 import { clerkMiddleware } from "@clerk/express";
 import { app, server } from "./lib/socket.ts";
 import { connectDb } from "./lib/db.ts";
 
 // Routers
-import webhookRouter from "./routes/webhook.js";
+import webhookRouter from "./routes/webhook.ts";
 import practitionerRouter from "./routes/practitioner.route.ts";
 import productRouter from "./routes/product.route.ts";
 import consultationRouter from "./routes/consultation.route.ts";
 import orderRouter from "./routes/order.route.ts";
 import messageRouter from "./routes/message.route.ts";
+import { errorConverter, errorHandler } from "./middlewares/error.ts";
+import ApiError from "./utils/ApiError.ts";
 
 const PORT = process.env.PORT || 5000;
 
@@ -32,8 +35,37 @@ app.use("/api/products", productRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/messages", messageRouter);
+app.use((req, res, next) => {
+  next(new ApiError(httpStatus.NOT_FOUND, "Not found"));
+});
 
+app.use(errorConverter);
+app.use(errorHandler);
 server.listen(PORT, async () => {
   await connectDb();
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
+});
+
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      console.info("Server closed");
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
+const unExpectedErrorHandler = (error: Error) => {
+  console.error(error);
+  exitHandler();
+};
+
+process.on("uncaughtException", unExpectedErrorHandler);
+process.on("unhandledRejection", unExpectedErrorHandler);
+process.on("SIGTERM", () => {
+  console.info("SIGTERM recieved");
+  if (server) {
+    server.close();
+  }
 });
