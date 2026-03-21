@@ -1,16 +1,60 @@
 import { z } from "zod";
+import { AdminVerificationStatusSchemaZod } from "./practitioner.validation.ts";
 
-// const VerificationStatus = z.enum(["pending", "approved", "rejected"]);
+// Multipart/form-data sends all fields as strings; parse JSON strings into arrays.
+const parseArray = (val: unknown): unknown => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : val;
+    } catch {
+      return val;
+    }
+  }
+  return val;
+};
 
-export const ProductSchemaZod = z.object({
+const imageUrlsSchema = z.preprocess(
+  parseArray,
+  z.array(z.string().url().min(1)).min(1, "At least one image is required"),
+);
+
+const imageUrlsOptionalSchema = z.preprocess(
+  parseArray,
+  z.array(z.string().url().min(1)).min(1),
+);
+
+export const ProductCreateSchemaZod = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
-  ingredients: z.array(z.string().min(1)).optional().default([]),
-  usageInstructions: z.array(z.string().min(1)).optional().default([]),
-  price: z.number().nonnegative(),
-  inventory: z.number().int().nonnegative().optional().default(0),
-  imageUrls: z.array(z.url().min(1)),
-  // verificationStatus: VerificationStatus.optional().default("pending"),
+  description: z.string(),
+  ingredients: z.preprocess(parseArray, z.array(z.string().min(1)).default([])),
+  usageInstructions: z.preprocess(parseArray, z.array(z.string().min(1)).default([])),
+  // Multipart/form-data fields arrive as strings, so coerce to numbers.
+  price: z.coerce.number().nonnegative(),
+  inventory: z.coerce.number().int().nonnegative().default(0),
+  imageUrls: imageUrlsSchema,
+  // Suppliers cannot set verificationStatus (admin-only). Intentionally omitted.
 });
 
-export type ProductZ = z.infer<typeof ProductSchemaZod>;
+export const ProductUpdateSchemaZod = z
+  .object({
+    name: z.string().min(1),
+    description: z.string(),
+    ingredients: z.preprocess(parseArray, z.array(z.string().min(1))),
+    usageInstructions: z.preprocess(parseArray, z.array(z.string().min(1))),
+    price: z.coerce.number().nonnegative(),
+    inventory: z.coerce.number().int().nonnegative(),
+    imageUrls: imageUrlsOptionalSchema,
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field is required",
+  });
+
+export const ProductVerificationSchemaZod = z.object({
+  status: AdminVerificationStatusSchemaZod,
+});
+
+export type ProductCreateZ = z.infer<typeof ProductCreateSchemaZod>;
+export type ProductUpdateZ = z.infer<typeof ProductUpdateSchemaZod>;  
+export type ProductVerificationZ = z.infer<typeof ProductVerificationSchemaZod>;

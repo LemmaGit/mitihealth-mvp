@@ -7,7 +7,7 @@ const PractitionerSchema = new mongoose.Schema({
   location: { type: String, required: true },
   consultationFee: { type: Number, required: true },
   conditionsTreated: [{ type: String }],
-  availability: { type: Object, default: {} }, // e.g. { "Monday": ["09:00","10:00"] }
+  availability: { type: Object, default: {} }, 
   verificationStatus: {
     type: String,
     enum: ["pending", "approved", "rejected"],

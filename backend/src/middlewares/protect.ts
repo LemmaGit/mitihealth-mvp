@@ -4,7 +4,6 @@ import ApiError from "../utils/ApiError.ts";
 
 export const protect = (req: any, res: any, next: any) => {
   const { userId } = getAuth(req);
-
   if (!userId) {
     return next(new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]));
   }

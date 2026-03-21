@@ -44,10 +44,11 @@ export const errorHandler = (
     message = status[statusCode as keyof typeof status] as string;
   }
 
-  const response = {
+  const response: Record<string, unknown> = {
     error: true,
     code: statusCode,
     message,
+    ...(err.details?.errors && { errors: err.details.errors }),
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   };
 

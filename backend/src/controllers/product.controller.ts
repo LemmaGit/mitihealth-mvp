@@ -2,9 +2,11 @@ import status from "http-status";
 import catchAsync from "../utils/catchAsync.ts";
 import ApiError from "../utils/ApiError.ts";
 import { Product } from "../models/product.model.ts";
-import { createProduct } from "../services/product.service.ts";
+import { createProduct, updateProduct, verifyProductStatus } from "../services/product.service.ts";
 
-export const addOrUpdateProduct = catchAsync(async (req, res, next) => {
+// ✅
+export const createProductController = catchAsync(async (req, res, next) => {
+  // @ts-ignore
   const userId = req.userId;
 
   if (!userId) {
@@ -15,16 +17,41 @@ export const addOrUpdateProduct = catchAsync(async (req, res, next) => {
   res.status(status.CREATED).json(product);
 });
 
-export const getAllProducts = catchAsync(async (req, res) => {
-  const products = await Product.find({ verificationStatus: "approved" });
-  res.json(products);
+// ✅
+export const updateProductController = catchAsync(async (req, res, next) => {
+  // @ts-ignore
+  const userId = req.userId;
+
+  if (!userId) {
+    return next(new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]));
+  }
+
+  const updated = await updateProduct(userId, req.params.id as string, req.body);
+
+  if (!updated) {
+    return next(
+      new ApiError(
+        status.NOT_FOUND,
+        "Product not found (or you do not have permission to update it)",
+      ),
+    );
+  }
+
+  res.json(updated);
 });
 
-export const verifyProduct = catchAsync(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(
-    req.params.id,
-    { verificationStatus: req.body.status },
-    { returnDocument: "after" },
-  );
+// ✅
+export const getAllProducts = catchAsync(async (req, res) => {
+  const products = await Product.find();
+  res.status(status.OK).json(products);
+});
+
+// ✅
+export const verifyProduct = catchAsync(async (req, res,next) => {
+  const { status } = req.body;
+  const product = await verifyProductStatus(req.params.id as string, status);
+  if (!product) {
+    return next(new ApiError(status.NOT_FOUND, "Product not found"));
+  }
   res.json(product);
 });

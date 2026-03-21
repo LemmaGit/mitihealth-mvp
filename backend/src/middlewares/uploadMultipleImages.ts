@@ -1,16 +1,14 @@
 import streamifier from "streamifier";
-import status from "http-status";
 import cloudinary from "../lib/cloudinary.ts";
 import catchAsync from "../utils/catchAsync.ts";
 
 export const uploadMultipleImages = catchAsync(async (req, res, next) => {
-  const files = req.files;
+  // @ts-ignore
+  const files = req.files as Express.Multer.File[];
 
-  if (!files || !files.length) {
-    return res
-      .status(status.BAD_REQUEST)
-      .json({ message: "No files uploaded" });
-  }
+  // Allow requests that do not change images (e.g. PATCH updates).
+  // For POST create, the Zod schema will still require `imageUrls`.
+  if (!files || !files.length) return next();
 
   const uploadPromises = files.map((file) => {
     return new Promise((resolve, reject) => {
@@ -27,6 +25,6 @@ export const uploadMultipleImages = catchAsync(async (req, res, next) => {
   });
 
   const urls = await Promise.all(uploadPromises);
-  req.body.imageUrls = urls;
+  req.body.imageUrls = urls as string[];
   next();
 });

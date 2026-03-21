@@ -8,13 +8,17 @@ import { connectDb } from "./lib/db.ts";
 
 // Routers
 import webhookRouter from "./routes/webhook.ts";
+import adminRouter from "./routes/admin.route.ts";
 import practitionerRouter from "./routes/practitioner.route.ts";
 import productRouter from "./routes/product.route.ts";
 import consultationRouter from "./routes/consultation.route.ts";
 import orderRouter from "./routes/order.route.ts";
 import messageRouter from "./routes/message.route.ts";
-import { errorConverter, errorHandler } from "./middlewares/error.ts";
+
 import ApiError from "./utils/ApiError.ts";
+import { errorConverter, errorHandler } from "./middlewares/error.ts";
+import { protect } from "./middlewares/protect.ts";
+import { syncUser } from "./middlewares/syncUser.ts";
 
 const PORT = process.env.PORT || 5000;
 
@@ -28,9 +32,13 @@ app.use(
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(clerkMiddleware());
+app.use(syncUser)
+app.use(protect)
+
 
 // All API routes
 app.use("/api/practitioners", practitionerRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/products", productRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/orders", orderRouter);

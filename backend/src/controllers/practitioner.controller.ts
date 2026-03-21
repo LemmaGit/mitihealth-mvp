@@ -1,49 +1,71 @@
-import { getAuth } from "@clerk/express";
-import { Practitioner } from "../models/Practitioner.model.ts";
+import status from "http-status";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
+import {
+  findPractitionerById,
+  findVerifiedPractitioners,
+  updatePractitionerAvailabilityAndFee,
+  updatePractitionerVerification,
+  upsertPractitionerProfile,
+} from "../services/practitioner.service.ts";
 
-export const getAllVerifiedPractitioners = async (req, res) => {
-  const { condition, location, minFee, maxFee } = req.query;
-
-  const query: any = { verificationStatus: "approved" };
-
-  if (condition) query.conditionsTreated = { $in: [condition] };
-  if (location) query.location = { $regex: location, $options: "i" };
-  if (minFee) query.consultationFee = { $gte: Number(minFee) };
-  if (maxFee)
-    query.consultationFee = { ...query.consultationFee, $lte: Number(maxFee) };
-
-  const practitioners = await Practitioner.find(query).populate(
-    "clerkId",
-    "name email",
-  );
+export const getAllVerifiedPractitioners = catchAsync(async (req, res) => {
+  const practitioners = await findVerifiedPractitioners(req.query);
   res.json(practitioners);
-};
+});
 
-export const getPractitioner = async (req, res) => {
-  const practitioner = await Practitioner.findById(req.params.id);
-  if (!practitioner) return res.status(404).json({ error: "Not found" });
+export const getPractitioner = catchAsync(async (req, res) => {
+  const practitioner = await findPractitionerById(req.params.id);
+  if (!practitioner) {
+    throw new ApiError(status.NOT_FOUND, "Not found");
+  }
   res.json(practitioner);
-};
+});
 
-export const updatePractitionerProfile = async (req, res) => {
-  const { userId } = getAuth(req);
-  const data = req.body;
+export const updatePractitionerProfile = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
 
-  const practitioner = await Practitioner.findOneAndUpdate(
-    { clerkId: userId },
-    { clerkId: userId, ...data },
-    { upsert: true, new: true },
-  );
-
+  const practitioner = await upsertPractitionerProfile(userId, req.body);
   res.json(practitioner);
-};
+});
 
-export const adminVerification = async (req, res) => {
-  const { status } = req.body; // approved or rejected
-  const practitioner = await Practitioner.findByIdAndUpdate(
+export const adminVerification = catchAsync(async (req, res) => {
+  const { status: statusFromBody } = req.body ?? {};
+  const verificationStatus = Array.isArray(statusFromBody)
+    ? statusFromBody[0]
+    : statusFromBody;
+
+  const practitioner = await updatePractitionerVerification(
     req.params.id,
-    { verificationStatus: status },
-    { new: true },
+    verificationStatus,
   );
+  if (!practitioner) {
+    throw new ApiError(
+      status.NOT_FOUND,
+      "Practitioner not found (or invalid verification status)",
+    );
+  }
+
   res.json(practitioner);
-};
+});
+
+export const updateAvailabilityAndFee = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const practitioner = await updatePractitionerAvailabilityAndFee(userId, {
+    consultationFee: req.body?.consultationFee,
+    availability: req.body?.availability,
+  });
+
+  if (!practitioner) {
+    throw new ApiError(status.NOT_FOUND, "Practitioner profile not found");
+  }
+
+  res.json({ success: true, practitioner });
+});

@@ -1,19 +1,27 @@
-import { getAuth } from "@clerk/express";
-import { Consultation } from "../models/consultation.model.ts";
+import status from "http-status";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
+import {
+  createConsultationForPatient,
+  getConsultationsForUser,
+} from "../services/consultation.service.ts";
 
-export const bookConsultation = async (req, res) => {
-  const { userId } = getAuth(req);
-  const consultation = await Consultation.create({
-    patientId: userId,
-    ...req.body,
-  });
-  res.json(consultation);
-};
+export const bookConsultation = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
 
-export const getMyConsultations = async (req, res) => {
-  const { userId } = getAuth(req);
-  const consultations = await Consultation.find({
-    $or: [{ patientId: userId }, { practitionerId: userId }],
-  });
+  const consultation = await createConsultationForPatient(userId, req.body);
+  res.status(status.CREATED).json({ success: true, consultation });
+});
+
+export const getMyConsultations = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const consultations = await getConsultationsForUser(userId);
   res.json(consultations);
-};
+});

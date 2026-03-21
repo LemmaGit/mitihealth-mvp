@@ -1,14 +1,65 @@
-import { getAuth } from "@clerk/express";
-import { Order } from "../models/order.model.ts";
+import status from "http-status";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
+import {
+  createOrderForPatient,
+  getOrdersForPatient,
+  getSupplierOrders,
+  updateOrderStatusForSupplier,
+} from "../services/order.service.ts";
 
-export const createOrder = async (req, res) => {
-  const { userId } = getAuth(req);
-  const order = await Order.create({ patientId: userId, ...req.body });
+export const createOrder = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const order = await createOrderForPatient(userId, req.body);
   res.json(order);
-};
+});
 
-export const getMyOrder = async (req, res) => {
-  const { userId } = getAuth(req);
-  const orders = await Order.find({ patientId: userId }).populate("productId");
+export const getMyOrder = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const orders = await getOrdersForPatient(userId);
   res.json(orders);
-};
+});
+
+export const getMySupplierOrders = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const orders = await getSupplierOrders(userId);
+  res.json(orders);
+});
+
+export const updateOrderStatusForSupplierHandler = catchAsync(async (req: any, res) => {
+  const userId: string | undefined = req.userId;
+  const { orderId } = req.params;
+  const { status: statusFromBody } = req.body;
+
+  if (!userId) {
+    throw new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]);
+  }
+
+  const newStatus: string = Array.isArray(statusFromBody)
+    ? String(statusFromBody[0])
+    : String(statusFromBody);
+
+  if (!newStatus) {
+    throw new ApiError(status.BAD_REQUEST, "Order status is required");
+  }
+
+  const updated = await updateOrderStatusForSupplier(userId, orderId, newStatus);
+  if (!updated) {
+    // Keep message simple; 404 vs 403 is not always distinguishable without extra queries.
+    throw new ApiError(status.NOT_FOUND, "Order not found (or you do not have permission)");
+  }
+
+  res.status(status.OK).json({ success: true, order: updated });
+});

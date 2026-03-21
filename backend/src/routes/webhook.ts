@@ -1,15 +1,18 @@
-import express from "express";
+import {Router} from "express";
 import { Webhook } from "svix";
 import { User } from "../models/User.model.ts";
-import { clerkClient } from "@clerk/express";
+import { Practitioner } from "../models/Practitioner.model.ts";
+import catchAsync from "../utils/catchAsync.ts";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", async (req, res) => {
-  const payload = req.body.toString();
+//TODO: WHY are we adding a default fields to create the practioner create it once the user completes profile since we have the role
+// we can manage
+
+router.post("/", catchAsync(async (req, res) => {
+  const payload = req.body 
   const headers = req.headers as Record<string, string>;
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
-
   let evt;
   try {
     evt = wh.verify(payload, {
@@ -24,22 +27,33 @@ router.post("/", async (req, res) => {
 
   const eventType = evt.type;
   const data = evt.data;
-
-  if (eventType === "user.created") {
-    const role = (data.unsafe_metadata as any)?.role || "patient"; // from signup
-
+  if (eventType === 'user.created') {
+    const role = (data.unsafe_metadata as any)?.role || 'patient';
+    
+    // Create User record
     await User.create({
       clerkId: data.id,
-      name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
       email: data.email_addresses?.[0]?.email_address,
-      phone: data.phone_numbers?.[0]?.phone_number,
+      // phone: data.phone_numbers?.[0]?.phone_number,
       role: role,
     });
-
-    console.log(`✅ User synced: ${data.id} (${role})`);
+  
+    if (role === 'practitioner') {
+      await Practitioner.create({
+        clerkId: data.id,
+        verificationStatus: 'pending',     // ← admin must approve
+        specialization: '',
+        experienceYears: 0,
+        location: '',
+        consultationFee: 0,
+      });
+    }
+  
+    console.log(`✅ User created: ${data.id} (${role})`);
   }
 
   res.status(200).json({ success: true });
-});
+}));
 
 export default router;
