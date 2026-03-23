@@ -5,6 +5,7 @@ import {
   updateProductController,
   getAllProducts,
   verifyProduct,
+  getSupplierProductsAndStats,
 } from "../controllers/product.controller.ts";
 import { validate } from "../middlewares/validate.ts";
 import {
@@ -21,6 +22,7 @@ const router = Router();
 // Supplier creates product
 router.post(
   "/",
+  protectRole(["supplier"]),
   upload.array("images", 5),
   uploadMultipleImages,
   validate(ProductCreateSchemaZod),
@@ -29,6 +31,7 @@ router.post(
 
 // Get all approved products (marketplace)
 router.get("/", getAllProducts);
+router.get("/:id",protectRole(["supplier"]), getSupplierProductsAndStats);
 
 // Admin verify product
 router.patch("/:id/verify",protectRole(["admin"]), validate(ProductVerificationSchemaZod), verifyProduct);

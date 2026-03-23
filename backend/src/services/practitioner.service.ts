@@ -21,22 +21,29 @@ export const findVerifiedPractitioners = async (filters: {
 
   if (condition) query.conditionsTreated = { $in: [condition] };
   if (location) query.location = { $regex: String(location), $options: "i" };
-  if (minFee) query.consultationFee = { $gte: Number(minFee) };
+  if (minFee) query["consultationTypes.video.price"] = { $gte: Number(minFee) };
   if (maxFee)
-    query.consultationFee = { ...query.consultationFee, $lte: Number(maxFee) };
+    query["consultationTypes.video.price"] = {
+      ...(query["consultationTypes.video.price"] || {}),
+      $lte: Number(maxFee),
+    };
 
-  return Practitioner.find(query).select("clerkId specialization experienceYears location consultationFee conditionsTreated availability verificationStatus createdAt");
+  return Practitioner.find(query).select(
+    "clerkId specialization practicingSinceEC location consultationTypes conditionsTreated availability verificationStatus createdAt",
+  );
 };
 
 export const findPractitionerById = async (id: string) => {
-  return Practitioner.findById(id);
+  return Practitioner.findOne({
+  clerkId: id,
+});;
 };
 
 export const upsertPractitionerProfile = async (userId: string, data: any) => {
   return Practitioner.findOneAndUpdate(
     { clerkId: userId },
-    { clerkId: userId, ...data },
-    { upsert: true, new: true },
+    { clerkId: userId, ...data }, 
+    { upsert: true, returnDocument: "after" },
   );
 };
 
@@ -56,15 +63,15 @@ export const updatePractitionerVerification = async (
 export const updatePractitionerAvailabilityAndFee = async (
   userId: string,
   payload: {
-    consultationFee?: number;
-    availability?: Record<string, string[]>;
+    consultationTypes?: any;
+    availability?: any;
   },
 ) => {
   return Practitioner.findOneAndUpdate(
     { clerkId: userId },
     {
-      ...(typeof payload.consultationFee !== "undefined"
-        ? { consultationFee: payload.consultationFee }
+      ...(typeof payload.consultationTypes !== "undefined"
+        ? { consultationTypes: payload.consultationTypes }
         : {}),
       ...(typeof payload.availability !== "undefined"
         ? { availability: payload.availability }

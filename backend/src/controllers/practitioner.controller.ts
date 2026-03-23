@@ -15,11 +15,8 @@ export const getAllVerifiedPractitioners = catchAsync(async (req, res) => {
 });
 
 export const getPractitioner = catchAsync(async (req, res) => {
-  const practitioner = await findPractitionerById(req.params.id);
-  if (!practitioner) {
-    throw new ApiError(status.NOT_FOUND, "Not found");
-  }
-  res.json(practitioner);
+  const practitioner = await findPractitionerById(req.params.id as string);
+  res.status(status.OK).json(practitioner);
 });
 
 export const updatePractitionerProfile = catchAsync(async (req: any, res) => {
@@ -39,7 +36,7 @@ export const adminVerification = catchAsync(async (req, res) => {
     : statusFromBody;
 
   const practitioner = await updatePractitionerVerification(
-    req.params.id,
+    req.params.id as string,
     verificationStatus,
   );
   if (!practitioner) {
@@ -59,7 +56,7 @@ export const updateAvailabilityAndFee = catchAsync(async (req: any, res) => {
   }
 
   const practitioner = await updatePractitionerAvailabilityAndFee(userId, {
-    consultationFee: req.body?.consultationFee,
+    consultationTypes: req.body?.consultationTypes,
     availability: req.body?.availability,
   });
 

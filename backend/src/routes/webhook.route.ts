@@ -1,13 +1,11 @@
 import {Router} from "express";
 import { Webhook } from "svix";
 import { User } from "../models/User.model.ts";
-import { Practitioner } from "../models/Practitioner.model.ts";
 import catchAsync from "../utils/catchAsync.ts";
+import status from "http-status";
+import ApiError from "../utils/ApiError.ts";
 
 const router = Router();
-
-//TODO: WHY are we adding a default fields to create the practioner create it once the user completes profile since we have the role
-// we can manage
 
 router.post("/", catchAsync(async (req, res) => {
   const payload = req.body 
@@ -27,28 +25,49 @@ router.post("/", catchAsync(async (req, res) => {
 
   const eventType = evt.type;
   const data = evt.data;
-  if (eventType === 'user.created') {
+
+// since we have onboarding page we dont need to create user here after their role is
+// assigned we can create the user
+
+  /*if (eventType === 'user.created') {
     const role = (data.unsafe_metadata as any)?.role || 'patient';
     
-    // Create User record
     await User.create({
       clerkId: data.id,
       name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
       email: data.email_addresses?.[0]?.email_address,
-      // phone: data.phone_numbers?.[0]?.phone_number,
       role: role,
     });
   
     if (role === 'practitioner') {
       await Practitioner.create({
         clerkId: data.id,
-        verificationStatus: 'pending',     // ← admin must approve
+        verificationStatus: 'pending', 
         specialization: '',
-        experienceYears: 0,
+        practicingSinceEC: 2000,
         location: '',
-        consultationFee: 0,
+        consultationTypes: {
+          chat: { enabled: false, price: 0 },
+          audio: { enabled: false, price: 0 },
+          video: { enabled: false, price: 0 }
+        },
       });
     }
+  
+    console.log(`✅ User created: ${data.id} (${role})`);
+  }
+  */
+  if (eventType === 'user.updated') {
+    const role = (data.unsafe_metadata as any)?.role;
+    if(!role) return res.status(status.BAD_REQUEST).json(new ApiError(status.BAD_REQUEST,"Role not found"));
+    // Create User record
+    await User.create({
+      clerkId: data.id,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+      email: data.email_addresses?.[0]?.email_address,
+      role: role,
+      isVerified:role!=="practitioner"
+    });
   
     console.log(`✅ User created: ${data.id} (${role})`);
   }

@@ -16,17 +16,16 @@ export const syncUser = catchAsync(async (req, res, next) => {
   const clerkUser = await clerkClient.users.getUser(clerkId);
 
   if(!clerkUser) return next(new ApiError(status.NOT_FOUND,`User not found: ${status[status.NOT_FOUND]}`))
-  
+  if(!clerkUser.unsafeMetadata?.role) return next(new ApiError(status.NOT_FOUND,`User role not found: ${status[status.NOT_FOUND]}`))
+  // if no user we create it here
   if (!user) {
-    await User.findOneAndUpdate(
-        { clerkId },
-        {
+    await User.create(
+        { 
           clerkId,
-          name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+          name: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
           email: clerkUser.emailAddresses?.[0]?.emailAddress,
-          role: clerkUser.unsafeMetadata?.role || "patient",
-        },
-        { upsert: true, new: true }
+          role: clerkUser.unsafeMetadata?.role as string,
+        }
       );
 
     console.log("⚠️ Fallback user created:", clerkId);

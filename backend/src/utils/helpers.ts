@@ -1,3 +1,4 @@
+//@ts-ignore
 import streamifier from "streamifier";
 import cloudinary from "../lib/cloudinary.ts";
 import type { Request } from "express";

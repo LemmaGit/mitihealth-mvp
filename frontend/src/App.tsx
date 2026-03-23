@@ -1,78 +1,44 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { Show, SignIn, SignUp, UserButton, useUser } from "@clerk/react";
-import Onboarding from "./pages/Onboarding.tsx";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import useAuth from "./hooks/useAuth";
 
-function App() {
-  const { user, isLoaded } = useUser();
+import Index from "./pages/Index";
+import Onboarding from "./pages/Onboarding";
 
-  // Auto-redirect logic: if no role yet → force onboarding
-  const hasRole = user?.unsafeMetadata?.role;
+import { LoginRoute, SignupRoute } from "./routes/Auth.routes";
+import UserRoutes from "./routes/User.routes";
+import { PropagateLoader } from "react-spinners";
+import Loader from "./components/Loader";
+
+const App = () => {
+  const { user, isLoaded, isSignedIn } = useAuth();
+
+  const userRole = user?.unsafeMetadata?.role;
+//TODO:  after a user signs up we navigate to /login befor going to onboarding fix
+  const getRootRedirect = () => {
+    if (!isLoaded) return <Loader isFullPage={true}><PropagateLoader color="#004c22" /></Loader>
+    if (!isSignedIn) return <Index />; 
+    if (!userRole) return <Navigate to="/onboarding" replace />;
+    
+    return <Navigate to={`/${userRole as string}`} replace />;
+  };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <header className="p-4 border-b flex justify-between items-center bg-white">
-          <h1 className="text-2xl font-bold text-green-700">MitiHealth</h1>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
-        </header>
-
-        <Routes>
-          <Route path="/sign-in" element={<SignIn />} />
-
-          <Route
-            path="/sign-up"
-            element={
-              <SignUp
-                fallbackRedirectUrl="/onboarding"
-                forceRedirectUrl="/onboarding"
-              />
-            }
-          />
-
-          {/* ONBOARDING - ONLY if no role yet */}
-          <Route
-            path="/onboarding"
-            element={
-              <Show when="signed-in">
-                {hasRole ? <Navigate to="/" replace /> : <Onboarding />}
-              </Show>
-            }
-          />
-
-          {/* HOME / DASHBOARD */}
-          <Route
-            path="/"
-            element={
-              <Show when="signed-in">
-                {isLoaded && !hasRole ? (
-                  <Navigate to="/onboarding" replace />
-                ) : (
-                  <div className="p-8 text-center">
-                    <h2 className="text-3xl font-bold text-green-700">
-                      Welcome to MitiHealth! 🎉
-                    </h2>
-                    <p className="mt-4 text-gray-600">
-                      You are logged in as{" "}
-                      <strong>{user?.unsafeMetadata?.role}</strong>
-                    </p>
-                  </div>
-                )}
-              </Show>
-            }
-          />
-
-          <Route path="*" element={<Navigate to="/sign-up" replace />} />
-        </Routes>
-      </div>
-    </Router>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={getRootRedirect()} />
+        <Route path="/login" element={<LoginRoute isSignedIn={isSignedIn} hasRole={userRole as string | undefined} />} />
+        <Route path="/signup" element={<SignupRoute isSignedIn={isSignedIn} hasRole={userRole as string | undefined} />} />
+        <Route path="/onboarding" element={
+          isSignedIn ? (
+            userRole ? <Navigate to={`/${userRole as string}`} replace /> : <Onboarding />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        <Route path="/*" element={<UserRoutes />} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

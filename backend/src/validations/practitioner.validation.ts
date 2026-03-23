@@ -1,17 +1,33 @@
 import { z } from "zod";
 
-const availabilitySchema = z.record(
-  z.string().min(1),
-  z.array(z.string().min(1)),
-);
+const timeSlotSchema = z.object({
+  start: z.string(),
+  end: z.string(),
+});
+
+const dayScheduleSchema = z.object({
+  day: z.string(),
+  enabled: z.boolean(),
+  slots: z.array(timeSlotSchema),
+});
+
+const consultationTypeSchema = z.object({
+  enabled: z.boolean(),
+  price: z.coerce.number({ message: "Price must be a valid number" }).nonnegative(),
+});
 
 export const PractitionerProfileSchemaZod = z.object({
-  specialization: z.string().min(1),
-  location: z.string().min(1),
-  consultationFee: z.coerce.number().nonnegative(),
-  experienceYears: z.coerce.number().int().nonnegative().optional(),
+  specialization: z.string().min(1, "Specialization is required"),
+  location: z.string().min(1, "Location is required"),
+  practicingSinceEC: z.coerce.number({ message: "Practicing Since (EC) must be a valid number" }).int().positive().max(new Date().getFullYear(), "Year cannot be in the future"),
+  consultationTypes: z.object({
+    chat: consultationTypeSchema,
+    audio: consultationTypeSchema,
+    video: consultationTypeSchema,
+  }),
   conditionsTreated: z.array(z.string().min(1)).optional(),
-  availability: availabilitySchema.optional(),
+  availability: z.array(dayScheduleSchema).optional(),
+  bio: z.string().optional(),
 });
 
 export const AdminVerificationStatusSchemaZod = z.enum([
@@ -26,8 +42,12 @@ export const AdminVerifyPractitionerSchemaZod = z.object({
 
 export const PractitionerUpdateAvailabilitySchemaZod = z
   .object({
-    consultationFee: z.coerce.number().nonnegative().optional(),
-    availability: availabilitySchema.optional(),
+    consultationTypes: z.object({
+      chat: consultationTypeSchema,
+      audio: consultationTypeSchema,
+      video: consultationTypeSchema,
+    }).optional(),
+    availability: z.array(dayScheduleSchema).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",

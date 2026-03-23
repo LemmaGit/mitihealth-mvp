@@ -2,7 +2,7 @@ import status from "http-status";
 import catchAsync from "../utils/catchAsync.ts";
 import ApiError from "../utils/ApiError.ts";
 import { Product } from "../models/product.model.ts";
-import { createProduct, updateProduct, verifyProductStatus } from "../services/product.service.ts";
+import { createProduct, getProductsOfSupplier, updateProduct, verifyProductStatus } from "../services/product.service.ts";
 
 // ✅
 export const createProductController = catchAsync(async (req, res, next) => {
@@ -44,6 +44,13 @@ export const updateProductController = catchAsync(async (req, res, next) => {
 export const getAllProducts = catchAsync(async (req, res) => {
   const products = await Product.find();
   res.status(status.OK).json(products);
+});
+
+export const getSupplierProductsAndStats = catchAsync(async (req, res) => {
+  const {id:supplierId} = req.params;
+  const data = await getProductsOfSupplier(supplierId as string)
+  res.status(status.OK).json({...data
+  });
 });
 
 // ✅

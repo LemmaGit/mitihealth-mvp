@@ -7,7 +7,7 @@ import { app, server } from "./lib/socket.ts";
 import { connectDb } from "./lib/db.ts";
 
 // Routers
-import webhookRouter from "./routes/webhook.ts";
+import webhookRouter from "./routes/webhook.route.ts";
 import adminRouter from "./routes/admin.route.ts";
 import practitionerRouter from "./routes/practitioner.route.ts";
 import productRouter from "./routes/product.route.ts";

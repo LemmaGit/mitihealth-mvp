@@ -39,3 +39,23 @@ export const verifyProductStatus = async (productId: string, status: unknown) =>
     { returnDocument: "after" },
   );
 };
+
+export const getProductsOfSupplier = async( supplierId:string)=>{
+    const products = await Product.find({supplierId});
+    const stats = products.reduce(
+    (acc, p) => {
+      if (p.inventory === 0) acc.outOfStock++;
+      if (p.inventory > 0 && p.inventory <= 10) acc.lowStock++;
+      if (p.verificationStatus === "approved") acc.active++;
+      return acc;
+    },
+    { outOfStock: 0, lowStock: 0, active: 0 }
+  );
+  const {active,lowStock,outOfStock} = stats;
+
+  return {
+    products,
+    total:products.length,
+    active,lowStock,outOfStock
+  }
+}

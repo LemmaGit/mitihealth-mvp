@@ -88,7 +88,7 @@ export const validate =
   (schema: ZodTypeAny) =>
   (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req.body ?? {});
-
+    console.log(req.body)
     if (!result.success) {
       const errors = formatValidationErrors(
         result.error.issues as ZodIssueLike[]
