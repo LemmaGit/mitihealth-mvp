@@ -13,7 +13,7 @@ const App = () => {
   const { user, isLoaded, isSignedIn } = useAuth();
 
   const userRole = user?.unsafeMetadata?.role;
-//TODO:  after a user signs up we navigate to /login befor going to onboarding fix
+//TODO:  after a user signs up we navigate to /login before going to onboarding fix
   const getRootRedirect = () => {
     if (!isLoaded) return <Loader isFullPage={true}><PropagateLoader color="#004c22" /></Loader>
     if (!isSignedIn) return <Index />; 

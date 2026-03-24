@@ -123,20 +123,6 @@ export function EditProductModal({ product, isOpen, onClose, onUpdate }: EditPro
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-status">Status</Label>
-              <Select value={watch("status")} onValueChange={(val) => setValue("status", val, { shouldDirty: true })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="LOW STOCK">Low Stock</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="OUT OF STOCK">Out of Stock</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="edit-desc">Description</Label>
               <Textarea id="edit-desc" rows={3} {...register("desc")} />
             </div>

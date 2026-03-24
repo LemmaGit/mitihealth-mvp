@@ -35,6 +35,7 @@ export const apiClient = async (
   if (!response.ok) {
     // Attempt to extract the error payload
     const errorData = await response.json().catch(() => ({}));
+    console.log(errorData);
     throw new Error(errorData.message || "An error occurred while fetching data.");
   }
 

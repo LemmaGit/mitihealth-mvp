@@ -65,6 +65,7 @@ router.post("/", catchAsync(async (req, res) => {
       clerkId: data.id,
       name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
       email: data.email_addresses?.[0]?.email_address,
+      profilePicture:data.image_url,
       role: role,
       isVerified:role!=="practitioner"
     });

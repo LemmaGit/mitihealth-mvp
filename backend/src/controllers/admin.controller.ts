@@ -4,17 +4,18 @@ import ApiError from "../utils/ApiError.ts";
 import {
   getAdminAnalytics,
   listAllUsers,
+  listAllPractitioners,
   verifyPractitionerStatus,
   verifyProductStatus,
 } from "../services/admin.service.ts";
 
-export const verifyPractitionerHandler = catchAsync(async (req: any, res: any) => {
+export const verifyPractitionerHandler = catchAsync(async (req, res) => {
   const { status: statusFromBody } = req.body ?? {};
   const verificationStatus = Array.isArray(statusFromBody)
     ? statusFromBody[0]
     : statusFromBody;
 
-  const practitioner = await verifyPractitionerStatus(req.params.id, verificationStatus);
+  const practitioner = await verifyPractitionerStatus(req.params.id as string, verificationStatus);
   if (!practitioner) {
     throw new ApiError(
       status.NOT_FOUND,
@@ -25,13 +26,13 @@ export const verifyPractitionerHandler = catchAsync(async (req: any, res: any) =
   res.json({ success: true, practitioner });
 });
 
-export const verifyProductHandler = catchAsync(async (req: any, res: any) => {
+export const verifyProductHandler = catchAsync(async (req, res) => {
   const { status: statusFromBody } = req.body ?? {};
   const verificationStatus = Array.isArray(statusFromBody)
     ? statusFromBody[0]
     : statusFromBody;
 
-  const product = await verifyProductStatus(req.params.id, verificationStatus);
+  const product = await verifyProductStatus(req.params.id as string, verificationStatus);
   if (!product) {
     throw new ApiError(
       status.NOT_FOUND,
@@ -42,12 +43,17 @@ export const verifyProductHandler = catchAsync(async (req: any, res: any) => {
   res.json({ success: true, product });
 });
 
-export const listUsersHandler = catchAsync(async (_req: any, res: any) => {
+export const listUsersHandler = catchAsync(async (req, res) => {
   const users = await listAllUsers();
   res.json(users);
 });
 
-export const analyticsHandler = catchAsync(async (_req: any, res: any) => {
+export const listPractitionersHandler = catchAsync(async (req, res) => {
+  const practitioners = await listAllPractitioners();
+  res.json(practitioners);
+});
+
+export const analyticsHandler = catchAsync(async (req, res) => {
   const analytics = await getAdminAnalytics();
   res.json(analytics);
 });

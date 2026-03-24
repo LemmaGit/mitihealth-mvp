@@ -4,6 +4,7 @@ import { patientApi } from "../api/patient";
 import { supplierApi } from "../api/supplier";
 import { practitionerApi } from "../api/practitioner";
 import { adminApi } from "../api/admin";
+import { productApi } from "../api/product";
 
 export const useAppApi = () => {
   const { getToken } = useAuth();
@@ -14,5 +15,6 @@ export const useAppApi = () => {
     supplier: supplierApi(getToken),
     practitioner: practitionerApi(getToken),
     admin: adminApi(getToken),
+    product: productApi(getToken),
   };
 };

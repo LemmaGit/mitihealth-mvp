@@ -25,6 +25,7 @@ export const syncUser = catchAsync(async (req, res, next) => {
           name: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
           email: clerkUser.emailAddresses?.[0]?.emailAddress,
           role: clerkUser.unsafeMetadata?.role as string,
+          profilePicture:clerkUser.imageUrl,
         }
       );
 

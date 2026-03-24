@@ -7,6 +7,7 @@ import ProductDetail from "../pages/ProductDetail"
 import { useUser } from "@clerk/react"
 import { PropagateLoader } from "react-spinners"
 import Loader from "../components/Loader"
+import AdminRoutes from "./Admin.routes"
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -33,6 +34,7 @@ function UserRoutes() {
   return (
     <Routes>
       <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+        <Route path="admin/*" element={<AdminRoutes />} />
         <Route path="supplier/*" element={<SupplierRoutes />} />
         <Route path="patient/*" element={<PatientRoutes />} />
         <Route path="practitioner/*" element={<PractitionerRoutes />} />  

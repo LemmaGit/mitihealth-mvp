@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   phone: String,
+  profilePicture: String,
   role: { type: String, enum: ['patient', 'practitioner', 'supplier', 'admin'] },
   isVerified:{type:Boolean,default:true},
   createdAt: { type: Date, default: Date.now }

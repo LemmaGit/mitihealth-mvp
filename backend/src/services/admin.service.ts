@@ -35,17 +35,21 @@ export const verifyProductStatus = async (productId: string, status: unknown) =>
 };
 
 export const listAllUsers = async () => {
-  return User.find().select("name email phone role clerkId createdAt");
+  return User.find({});
+};
+
+export const listAllPractitioners = async () => {
+  return Practitioner.find({});
 };
 
 export const getAdminAnalytics = async () => {
   const [totalUsers, totalPractitioners, totalProducts, totalOrders, totalConsultations] =
     await Promise.all([
-      User.countDocuments(),
-      Practitioner.countDocuments(),
-      Product.countDocuments(),
-      Order.countDocuments(),
-      Consultation.countDocuments(),
+      User.countDocuments({}),
+      Practitioner.countDocuments({}),
+      Product.countDocuments({}),
+      Order.countDocuments({}),
+      Consultation.countDocuments({}),
     ]);
 
   const [pendingPractitioners, pendingProducts] = await Promise.all([

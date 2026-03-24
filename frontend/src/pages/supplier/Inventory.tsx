@@ -4,68 +4,111 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
-
 import { ProductCard } from "../../components/supplier/inventory/ProductCard";
 import { EditProductModal } from "../../components/supplier/inventory/EditProductModal";
 import { DeleteProductModal } from "../../components/supplier/inventory/DeleteProductModal";
-import type{ Product, EditFormValues } from "../../components/supplier/inventory/types";
-import { InventorySkeleton } from "../../components/supplier/inventory/InventorySkeleton";
-import { ClipLoader, SyncLoader } from "react-spinners";
+import type { Product, EditFormValues } from "../../components/supplier/inventory/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppApi } from "../../hooks/useAppApi";
+import { useAuth } from "@clerk/react";
 import Loader from "../../components/Loader";
-
-const initialProducts: Product[] = [
-  { id: "1", name: "Ethiopian Moringa Powder", price: "ETB 450", priceNum: 450, desc: "Organic, sun-dried Moringa leaves processed with traditional methods for maximum nutrient retention.", inv: "85 Units", invNum: 85, status: "ACTIVE", invColor: "text-foreground", verified: true, imageUrls: ["https://plus.unsplash.com/premium_photo-1726769198572-542339268a7f?q=80&w=1139&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"] },
-  { id: "2", name: "Koseret (Dried)", price: "ETB 280", priceNum: 280, desc: "High-altitude wild harvested Koseret, essential for authentic Ethiopian herbal preparations.", inv: "5 Units", invNum: 5, status: "LOW STOCK", invColor: "text-secondary", verified: true, imageUrls: ["https://plus.unsplash.com/premium_photo-1726769198572-542339268a7f?q=80&w=1139&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"] },
-  { id: "3", name: "Sacred Frankincense", price: "ETB 1,200", priceNum: 1200, desc: "Grade A resin from Tigray. Currently pending quality re-certification.", inv: "12 Units", invNum: 12, status: "INACTIVE", invColor: "text-muted-foreground", verified: false, imageUrls: ["https://plus.unsplash.com/premium_photo-1726769198572-542339268a7f?q=80&w=1139&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"] },
-  { id: "4", name: "Black Cumin Oil (Cold-Pressed)", price: "ETB 650", priceNum: 650, desc: "Pure Ethiopian black seed oil. Rich in Thymoquinone. Restocking soon.", inv: "0 Units", invNum: 0, status: "OUT OF STOCK", invColor: "text-destructive", verified: true, imageUrls: ["https://plus.unsplash.com/premium_photo-1726769198572-542339268a7f?q=80&w=1139&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"] },
-  { id: "5", name: "Premium Berbere Blend", price: "ETB 320", priceNum: 320, desc: "Signature medicinal spice blend featuring 12 hand-selected herbs and spices.", inv: "210 Units", invNum: 210, status: "ACTIVE", invColor: "text-foreground", verified: false, imageUrls: ["https://plus.unsplash.com/premium_photo-1726769198572-542339268a7f?q=80&w=1139&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"] },
-];
-
-const stats = [
-  { label: "TOTAL PRODUCTS", value: "128" },
-  { label: "LOW STOCK", value: "12", color: "text-secondary" },
-  { label: "OUT OF STOCK", value: "4", color: "text-destructive" },
-  { label: "ACTIVE LISTINGS", value: "112", color: "text-primary" },
-];
+import { ClipLoader } from "react-spinners";
+import { toast } from "sonner";
 
 export default function SupplierInventory() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const { supplier } = useAppApi();
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
+
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // 5 + 1 "Add Product" card = 6 grid items
 
-  
+  const { data: rawData = {}, isLoading } = useQuery({
+    queryKey: ["supplier", "products"],
+    queryFn: () => supplier.getSupplierProducts(userId as string),
+    enabled: !!userId,
+  });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) => supplier.updateProduct(id, data),
+    onSuccess: () => {
+      toast.success("Product updated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["supplier", "products"] });
+      setEditProduct(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to update product.");
+    }
+  });
+//ToDO: fix update
   const handleUpdate = (data: EditFormValues, newImages: File[]) => {
-    // The user handles logic to upload new images and call the API
-    console.log("Saving new images array ready for upload:", newImages);
-
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === editProduct?.id
-          ? {
-              ...p,
-              name: data.name,
-              priceNum: data.price,
-              price: `ETB ${data.price.toLocaleString()}`,
-              desc: data.desc,
-              invNum: data.inventory,
-              inv: `${data.inventory} Units`,
-              status: data.status,
-            }
-          : p
-      )
-    );
-    setEditProduct(null);
+    if (!editProduct) return;
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("price", data.price.toString());
+    formData.append("description", data.desc);
+    formData.append("inventory", data.inventory.toString());
+    
+    // Append new files
+    for (const file of newImages) {
+       formData.append("images", file);
+    }
+    
+    updateMutation.mutate({ id: editProduct.id, data: formData });
   };
 
   const confirmDelete = () => {
-    if (!deleteProduct) return;
-    setProducts((prev) => prev.filter((p) => p.id !== deleteProduct.id));
+    // Delete API not explicitly configured on backend ATM, mock action
+    toast.info("Delete functionality is currently disabled for marketplace integrity.");
     setDeleteProduct(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader isFullPage={false}><ClipLoader color="#004c22" /></Loader>
+      </div>
+    );
+  }
+
+  const products: Product[] = (rawData.products || []).map((p: any) => {
+    let status = "ACTIVE";
+    let invColor = "text-foreground";
+    
+    if (p.inventory <= 0) {
+      status = "OUT OF STOCK";
+      invColor = "text-destructive";
+    } else if (p.inventory < 10) {
+      status = "LOW STOCK";
+      invColor = "text-secondary";
+    }
+
+    return {
+      id: p._id,
+      name: p.name || "Unknown Product",
+      price: `ETB ${p.price?.toLocaleString() || 0}`,
+      priceNum: p.price || 0,
+      desc: p.description || "No description",
+      inv: `${p.inventory || 0} Units`,
+      invNum: p.inventory || 0,
+      status,     
+      invColor,
+      verified: p.verificationStatus === "approved",
+      imageUrls: p.imageUrls || [],
+    };
+  });
+
+  const statsList = [
+    { label: "TOTAL PRODUCTS", value: products.length },
+    { label: "LOW STOCK", value: products.filter(p => p.status === "LOW STOCK").length, color: "text-secondary" },
+    { label: "OUT OF STOCK", value: products.filter(p => p.status === "OUT OF STOCK").length, color: "text-destructive" },
+    { label: "ACTIVE LISTINGS", value: products.filter(p => p.status === "ACTIVE").length, color: "text-primary" },
+  ];
 
   const filtered = products.filter((p) => {
     const matchesTab =
@@ -78,10 +121,11 @@ export default function SupplierInventory() {
     return matchesTab && matchesSearch;
   });
 
-  //return <Loader isFullPage={false}><ClipLoader color="#004c22" /></Loader>;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <span className="text-xs font-medium uppercase tracking-widest text-primary">
@@ -117,9 +161,8 @@ export default function SupplierInventory() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
+        {statsList.map((s) => (
           <div key={s.label} className="rounded-xl bg-card p-4 shadow-botanical">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               {s.label}
@@ -131,18 +174,34 @@ export default function SupplierInventory() {
         ))}
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(t) => { setActiveTab(t); setCurrentPage(1); }}>
         <TabsList className="bg-card border border-border/20">
-          <TabsTrigger value="all">All Products</TabsTrigger>
-          <TabsTrigger value="verified">Verified</TabsTrigger>
-          <TabsTrigger value="unverified">Unverified</TabsTrigger>
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">All Products</TabsTrigger>
+          <TabsTrigger value="verified" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Verified</TabsTrigger>
+          <TabsTrigger value="unverified" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Unverified</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Product grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => (
+        {/* Add new product card (always present as first item on page 1, acting as CTA) */}
+        {currentPage === 1 && activeTab === "all" && !searchQuery && (
+          <button
+            onClick={() => navigate("/supplier/add-product")}
+            className="flex flex-col items-center justify-center rounded-xl bg-card p-8 shadow-botanical ghost-border text-left hover:shadow-lg transition-shadow min-h-[300px]"
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <Plus size={24} className="text-muted-foreground" />
+            </div>
+            <h3 className="mt-4 font-display font-semibold">
+              List New Product
+            </h3>
+            <p className="mt-1 text-center text-xs text-muted-foreground">
+              Expand your digital herbal catalog and reach more practitioners.
+            </p>
+          </button>
+        )}
+
+        {paginated.map((p) => (
           <ProductCard 
             key={p.id} 
             product={p} 
@@ -151,51 +210,32 @@ export default function SupplierInventory() {
           />
         ))}
 
-        {/* Add new product card */}
-        <button
-          onClick={() => navigate("/supplier/add-product")}
-          className="flex flex-col items-center justify-center rounded-xl bg-card p-8 shadow-botanical ghost-border text-left hover:shadow-lg transition-shadow"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-            <Plus size={24} className="text-muted-foreground" />
+        {filtered.length === 0 && (currentPage !== 1 || activeTab !== "all" || searchQuery) && (
+          <div className="col-span-full rounded-xl border border-dashed border-border/50 p-8 text-center text-muted-foreground">
+            No products match this criteria.
           </div>
-          <h3 className="mt-4 font-display font-semibold">
-            List New Product
-          </h3>
-          <p className="mt-1 text-center text-xs text-muted-foreground">
-            Expand your digital herbal catalog and reach more practitioners.
+        )}
+      </div>
+
+      {filtered.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/15 pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-semibold text-foreground">{filtered.length}</span> products
           </p>
-        </button>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Showing <span className="font-semibold text-foreground">1 - {filtered.length}</span> of <span className="font-semibold text-foreground">{filtered.length}</span> products
-        </p>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-9 w-9 border-border/30">
-            <ChevronLeft size={16} />
-          </Button>
-          {[1, 2, 3].map((n) => (
-            <Button
-              key={n}
-              variant={n === 1 ? "default" : "outline"}
-              size="icon"
-              className={`h-9 w-9 ${n === 1 ? "botanical-gradient text-primary-foreground" : "border-border/30"}`}
-            >
-              {n}
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+              <ChevronLeft size={16} />
             </Button>
-          ))}
-          <span className="px-1 text-sm text-muted-foreground">...</span>
-          <Button variant="outline" size="icon" className="h-9 w-9 border-border/30">26</Button>
-          <Button variant="outline" size="icon" className="h-9 w-9 border-border/30">
-            <ChevronRight size={16} />
-          </Button>
+            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30 whitespace-nowrap px-8" disabled>
+              Page {currentPage} of {totalPages}
+            </Button>
+            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages || totalPages === 0}>
+              <ChevronRight size={16} />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Modals extracted to standalone components */}
       <EditProductModal 
         product={editProduct} 
         isOpen={!!editProduct} 
