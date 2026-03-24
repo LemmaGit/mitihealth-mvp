@@ -8,6 +8,8 @@ import { useUser } from "@clerk/react"
 import { PropagateLoader } from "react-spinners"
 import Loader from "../components/Loader"
 import AdminRoutes from "./Admin.routes"
+import { useAuthStore } from "../store/useAuthStore"
+import { PatientLayout } from "../components/layouts/PatientLayout"
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -31,9 +33,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function UserRoutes() {
+  const {authUser} = useAuthStore()
+  const role = authUser?.unsafeMetadata?.role
   return (
     <Routes>
-      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+      <Route element={<ProtectedRoute>
+        {role!=="patient" ?
+        <MainLayout />:
+        <PatientLayout/>
+        }
+        
+        </ProtectedRoute>}>
         <Route path="admin/*" element={<AdminRoutes />} />
         <Route path="supplier/*" element={<SupplierRoutes />} />
         <Route path="patient/*" element={<PatientRoutes />} />

@@ -10,6 +10,8 @@ export interface Product {
     invColor: string;
     verified: boolean;
     imageUrls?: string[];
+    ingredients?: string[];
+    usageInstructions?: string[];
   }
   
   export interface EditFormValues {
@@ -18,4 +20,6 @@ export interface Product {
     desc: string;
     inventory: number;
     status: string;
+    ingredients?: string;
+    usageInstructions?: string;
   }

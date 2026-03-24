@@ -22,7 +22,7 @@ const imageUrlsSchema = z.preprocess(
 
 const imageUrlsOptionalSchema = z.preprocess(
   parseArray,
-  z.array(z.string().url().min(1)).min(1),
+  z.array(z.string()).optional(),
 );
 
 export const ProductCreateSchemaZod = z.object({

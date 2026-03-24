@@ -5,8 +5,7 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Loader2 } from "lucide-react";
 import type{ Product, EditFormValues } from "./types";
 
 interface EditProductModalProps {
@@ -14,9 +13,10 @@ interface EditProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (data: EditFormValues, newImages: File[]) => void;
+  isPending: boolean;
 }
 
-export function EditProductModal({ product, isOpen, onClose, onUpdate }: EditProductModalProps) {
+export function EditProductModal({ product, isOpen, onClose, onUpdate, isPending }: EditProductModalProps) {
   const { register, handleSubmit, reset, setValue, watch, formState: { isDirty } } = useForm<EditFormValues>();
   
   // Keep track of existing images visually
@@ -26,13 +26,17 @@ export function EditProductModal({ product, isOpen, onClose, onUpdate }: EditPro
   
   useEffect(() => {
     if (product) {
+      console.log(product);
       reset({
         name: product.name,
         price: product.priceNum,
         desc: product.desc,
         inventory: product.invNum,
-        status: product.status,
+        ingredients:product.ingredients!.join(","),
+        usageInstructions:product.usageInstructions!.join(", "),
+        // status: product.status,
       });
+     
       setExistingImages(product.imageUrls || []);
       setNewImages([]);
     }
@@ -126,14 +130,23 @@ export function EditProductModal({ product, isOpen, onClose, onUpdate }: EditPro
               <Label htmlFor="edit-desc">Description</Label>
               <Textarea id="edit-desc" rows={3} {...register("desc")} />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-ing  redients">Ingredients</Label>
+              <Textarea id="edit-ingredients" rows={3} {...register("ingredients")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-usageInstructions">Usage Instructions</Label>
+              <Textarea id="edit-usageInstructions" rows={3} {...register("usageInstructions")} />
+            </div>
           </div>
 
           <DialogFooter className="gap-2 pt-2 border-t border-border/40 mt-6 md:mt-0">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!hasChanges} className="botanical-gradient text-primary-foreground disabled:opacity-40">
-              Update Product
+            
+          <Button type="submit" disabled={!hasChanges} className="botanical-gradient text-primary-foreground disabled:opacity-40">
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Update Product"}
             </Button>
           </DialogFooter>
         </form>

@@ -53,7 +53,8 @@ export default function SupplierInventory() {
     formData.append("price", data.price.toString());
     formData.append("description", data.desc);
     formData.append("inventory", data.inventory.toString());
-    
+    formData.append("ingredients", JSON.stringify(data.ingredients ? data.ingredients.split(",").map(i => i.trim()).filter(Boolean) : []));
+    formData.append("usageInstructions", JSON.stringify(data.usageInstructions ? data.usageInstructions.split(",").map(i => i.trim()).filter(Boolean) : []));
     // Append new files
     for (const file of newImages) {
        formData.append("images", file);
@@ -100,6 +101,8 @@ export default function SupplierInventory() {
       invColor,
       verified: p.verificationStatus === "approved",
       imageUrls: p.imageUrls || [],
+      ingredients: p.ingredients || [],
+      usageInstructions: p.usageInstructions || [],
     };
   });
 
@@ -241,6 +244,7 @@ export default function SupplierInventory() {
         isOpen={!!editProduct} 
         onClose={() => setEditProduct(null)} 
         onUpdate={handleUpdate} 
+        isPending={updateMutation.isPending}
       />
 
       <DeleteProductModal 

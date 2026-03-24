@@ -5,7 +5,7 @@ export const supplierApi = (getToken: () => Promise<string | null>) => ({
     apiClient("/products", { method: "POST", body: formData }, getToken),
     
   updateProduct: (id: string, formData: FormData) => 
-    apiClient(`/products/${id}`, { method: "PUT", body: formData }, getToken),
+    apiClient(`/products/${id}`, { method: "PATCH", body: formData }, getToken),
     
   getSupplierOrders: () => 
     apiClient("/orders/supplier/me", { method: "GET" }, getToken),

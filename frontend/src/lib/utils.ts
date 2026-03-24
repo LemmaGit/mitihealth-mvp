@@ -13,3 +13,14 @@ export function getInitials(name?: string | null): string {
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
+
+export async function urlToFile(imageUrl: string) {
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+
+  const file = new File([blob], "image.jpg", {
+    type: blob.type,
+  });
+
+  return file;
+}

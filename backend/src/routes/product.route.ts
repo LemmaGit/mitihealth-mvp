@@ -39,7 +39,7 @@ router.patch("/:id/verify",protectRole(["admin"]), validate(ProductVerificationS
 // Supplier updates own product (verificationStatus is admin-only)
 // In the form we will make sure if it is dirty meaning if there is something that is changed
 // and only then we request for an update
-router.put(
+router.patch(
   "/:id",
   protectRole(["supplier"]),
   upload.array("images", 5),
