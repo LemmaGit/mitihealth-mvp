@@ -1,4 +1,4 @@
-import { LogOut, Plus, Settings } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useClerk } from "@clerk/react";
@@ -13,7 +13,7 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
       <div>
         <div className="mb-8 px-2">
           <h2 className="font-display text-lg font-bold text-foreground">Modern Herbalist</h2>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">{authUser?.unsafeMetadata?.role}</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">{String(authUser?.unsafeMetadata?.role || "")}</p>
         </div>
 
         <nav className="space-y-1">
@@ -30,22 +30,12 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
           ))}
         </nav>
 
-        <div className="mt-6 px-1">
-          <NavLink
-            to="/supplier/settings"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
-            // activeClass="bg-muted text-foreground font-medium"
-          >
-            <Settings size={18} />
-            <span>Settings</span>
-          </NavLink>
-        </div>
       </div>
 
       <div className="space-y-2">
         {authUser?.unsafeMetadata?.role === "patient" && (
         <Button className="w-full botanical-gradient text-primary-foreground" asChild>
-          <Link to="/practitioner/chat">
+          <Link to="/patient">
             <Plus size={16} />
             New Consultation
           </Link>

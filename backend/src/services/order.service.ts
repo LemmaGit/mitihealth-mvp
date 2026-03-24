@@ -1,9 +1,23 @@
 import { Order } from "../models/order.model.ts";
+import { Product } from "../models/product.model.ts";
+import { createNotification } from "./notification.service.ts";
 
 const ALLOWED_ORDER_STATUSES = ["placed", "confirmed", "shipped", "completed"] as const;
 
 export const createOrderForPatient = async (patientId: string, orderData: any) => {
-  return Order.create({ patientId, ...orderData });
+  const order = await Order.create({ patientId, ...orderData });
+  const product = await Product.findById(order.productId);
+  if (product?.supplierId) {
+    await createNotification({
+      userId: product.supplierId,
+      type: "order:new",
+      title: "New order placed",
+      message: `A new order was placed for ${product.name}.`,
+      metadata: { orderId: order._id, productId: product._id },
+      sendEmailAlert: true,
+    });
+  }
+  return order;
 };
 
 export const getOrdersForPatient = async (patientId: string) => {

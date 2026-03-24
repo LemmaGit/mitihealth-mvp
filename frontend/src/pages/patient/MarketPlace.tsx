@@ -1,26 +1,48 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Star, ShoppingCart } from "lucide-react";
-import { products, productCategories } from "../../data/products";
 import { useCart } from "../../contexts/CartContext";
-// import { toast } from "../../hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { useAppApi } from "../../hooks/useAppApi";
 
 const Marketplace = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { product } = useAppApi();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Products");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 9;
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["patient", "products"],
+    queryFn: () => product.getAllProducts(),
+  });
+  const productCategories = useMemo(
+    () => ["All", ...Array.from(new Set((data as any[]).map((p: any) => (p.ingredients?.[0] || "General"))))],
+    [data],
+  );
 
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    return (data as any[]).map((p: any) => ({
+      ...p,
+      id: p._id,
+      subtitle: p.ingredients?.slice(0, 2).join(", ") || "Botanical product",
+      category: p.ingredients?.[0] || "General",
+      image: p.imageUrls?.[0] || "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800",
+      inStock: p.inventory > 0,
+      rating: 5,
+      reviews: 0,
+    })).filter((p: any) => {
       const matchesSearch =
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
-        selectedCategory === "All Products" || p.category === selectedCategory;
+        selectedCategory === "All" || p.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [data, searchQuery, selectedCategory]);
+  const totalPages = Math.ceil(filtered.length / perPage) || 1;
+  const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
 
   return (
       
@@ -65,7 +87,8 @@ const Marketplace = () => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((product) => (
+          {isLoading && <p className="text-sm text-muted-foreground">Loading products...</p>}
+          {paginated.map((product: any) => (
             <div
               key={product.id}
               className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-botanical hover:shadow-lg transition-all duration-300 group cursor-pointer"
@@ -123,7 +146,7 @@ const Marketplace = () => {
                     disabled={!product.inStock}
                     onClick={(e) => {
                       e.stopPropagation();
-                      addItem(product);
+                      addItem(product as any);
                     //   toast({ title: "Added to cart", description: `${product.name} added to your cart.` });
                     }}
                     className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary-container transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -139,6 +162,13 @@ const Marketplace = () => {
         {filtered.length === 0 && (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-lg">No products found.</p>
+          </div>
+        )}
+        {filtered.length > 0 && (
+          <div className="col-span-full mt-6 flex items-center justify-between">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="text-sm">Previous</button>
+            <p className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</p>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="text-sm">Next</button>
           </div>
         )}
       </>

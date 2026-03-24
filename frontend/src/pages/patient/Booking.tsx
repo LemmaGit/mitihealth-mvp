@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Lock, Calendar, Clock, Video, Shield, Wallet, Building2, CreditCard, Leaf } from "lucide-react";
-import { practitioners } from "../../data/practitioners";
-// import { toast } from "@/hooks/use-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAppApi } from "../../hooks/useAppApi";
+import { toast } from "sonner";
 
 const paymentMethods = [
   { id: "telebirr", name: "Telebirr", desc: "Mobile Money Wallet", icon: Wallet, color: "text-blue-600" },
@@ -13,8 +14,33 @@ const paymentMethods = [
 const Booking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const practitioner = practitioners.find((p) => p.id === id);
+  const location = useLocation();
+  const { common, patient } = useAppApi();
+  const [consultationType, setConsultationType] = useState<"chat" | "audio" | "video">("video");
   const [selectedPayment, setSelectedPayment] = useState("telebirr");
+  const payloadFromState = (location.state || {}) as { consultationDate?: string; consultationTime?: string };
+  const consultationDate = payloadFromState.consultationDate || new Date().toISOString();
+  const consultationTime = payloadFromState.consultationTime || "09:00-09:30";
+
+  const { data: practitioner } = useQuery({
+    queryKey: ["patient", "practitioner", id],
+    queryFn: () => common.getPractitioner(id!),
+    enabled: !!id,
+  });
+  const mutation = useMutation({
+    mutationFn: () =>
+      patient.bookConsultation({
+        practitionerId: id,
+        consultationDate: new Date().toISOString(),
+        consultationTime,
+        consultationType,
+      }),
+    onSuccess: () => {
+      toast.success("Consultation booked successfully.");
+      navigate("/patient/consultations");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to book consultation"),
+  });
 
   if (!practitioner) {
     return (
@@ -26,15 +52,12 @@ const Booking = () => {
     );
   }
 
+  const fee = practitioner?.consultationTypes?.[consultationType]?.price || 0;
   const serviceFee = 25;
-  const total = practitioner.price + serviceFee;
+  const total = fee + serviceFee;
 
   const handleConfirm = () => {
-    // toast({
-    //   title: "Booking Confirmed! 🎉",
-    //   description: `Your consultation with ${practitioner.name} has been booked. You'll receive a confirmation via SMS.`,
-    // });
-    setTimeout(() => navigate("/"), 2000);
+    mutation.mutate();
   };
 
   return (
@@ -65,23 +88,34 @@ const Booking = () => {
               </div>
               <div className="flex flex-col md:flex-row gap-6 bg-surface-container-lowest p-6 rounded-2xl">
                 <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-surface-container">
-                  <img src={practitioner.image} alt={practitioner.name} className="w-full h-full object-cover" width={96} height={96} />
+                  <img src={"https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800"} alt={practitioner?.clerkId} className="w-full h-full object-cover" width={96} height={96} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-headline font-bold text-primary">{practitioner.name}</h3>
-                  <p className="text-secondary font-medium">{practitioner.title}</p>
+                  <h3 className="text-xl font-headline font-bold text-primary">{practitioner?.clerkId}</h3>
+                  <p className="text-secondary font-medium">{practitioner?.specialization}</p>
                   <div className="flex flex-wrap gap-4 pt-2">
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Calendar className="w-4 h-4 text-primary" /> October 24, 2023
+                      <Calendar className="w-4 h-4 text-primary" /> {new Date(consultationDate).toDateString()}
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Clock className="w-4 h-4 text-primary" /> 10:30 AM (EAT)
+                      <Clock className="w-4 h-4 text-primary" /> {consultationTime}
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Video className="w-4 h-4 text-primary" /> Video Consultation
+                      <Video className="w-4 h-4 text-primary" /> {consultationType.toUpperCase()} Consultation
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["chat", "audio", "video"] as const).map((type) => (
+                  <button
+                    key={type}
+                    className={`rounded-lg px-3 py-2 text-sm ${consultationType === type ? "bg-primary text-primary-foreground" : "bg-surface-container-low"}`}
+                    onClick={() => setConsultationType(type)}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </section>
 
@@ -142,7 +176,7 @@ const Booking = () => {
               <div className="space-y-3">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Consultation Fee</span>
-                  <span>{practitioner.price.toFixed(2)} ETB</span>
+                  <span>{fee.toFixed(2)} ETB</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Service Charge</span>
@@ -159,12 +193,10 @@ const Booking = () => {
                 className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-headline font-bold text-lg hover:bg-primary-container transition-all flex items-center justify-center gap-3"
               >
                 <Shield className="w-5 h-5" />
-                Confirm & Pay Securely
+                Confirm Booking
               </button>
               <p className="text-center text-xs text-muted-foreground">
-                By confirming, you agree to our{" "}
-                <span className="underline text-primary cursor-pointer">Cancellation Policy</span>.
-                Payments are processed securely in local currency.
+                Payment coming soon. Booking is still confirmed on submit.
               </p>
             </div>
           </div>

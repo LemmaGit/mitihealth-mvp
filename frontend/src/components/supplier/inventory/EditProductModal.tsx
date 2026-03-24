@@ -17,7 +17,7 @@ interface EditProductModalProps {
 }
 
 export function EditProductModal({ product, isOpen, onClose, onUpdate, isPending }: EditProductModalProps) {
-  const { register, handleSubmit, reset, setValue, watch, formState: { isDirty } } = useForm<EditFormValues>();
+  const { register, handleSubmit, reset, formState: { isDirty } } = useForm<EditFormValues>();
   
   // Keep track of existing images visually
   const [existingImages, setExistingImages] = useState<string[]>([]);

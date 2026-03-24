@@ -45,7 +45,10 @@ export default function Onboarding() {
         },
       });
       
-      // Navigate to home page after successful update
+      if (role === "practitioner") {
+        navigate("/practitioner/profile");
+        return;
+      }
       navigate("/");
     } catch (error) {
       console.error("Error updating user role:", error);

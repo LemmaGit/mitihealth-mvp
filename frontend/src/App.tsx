@@ -1,19 +1,17 @@
+import { lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import useAuth from "./hooks/useAuth";
-
-import Index from "./pages/Index";
-import Onboarding from "./pages/Onboarding";
-
 import { LoginRoute, SignupRoute } from "./routes/Auth.routes";
-import UserRoutes from "./routes/User.routes";
 import { PropagateLoader } from "react-spinners";
 import Loader from "./components/Loader";
+const Index = lazy(() => import("./pages/Index"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const UserRoutes = lazy(() => import("./routes/User.routes"));
 
 const App = () => {
   const { user, isLoaded, isSignedIn } = useAuth();
 
   const userRole = user?.unsafeMetadata?.role;
-//TODO:  after a user signs up we navigate to /login before going to onboarding fix
   const getRootRedirect = () => {
     if (!isLoaded) return <Loader isFullPage={true}><PropagateLoader color="#004c22" /></Loader>
     if (!isSignedIn) return <Index />; 

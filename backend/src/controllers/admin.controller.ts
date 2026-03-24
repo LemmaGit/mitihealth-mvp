@@ -8,6 +8,7 @@ import {
   verifyPractitionerStatus,
   verifyProductStatus,
 } from "../services/admin.service.ts";
+import { createNotification } from "../services/notification.service.ts";
 
 export const verifyPractitionerHandler = catchAsync(async (req, res) => {
   const { status: statusFromBody } = req.body ?? {};
@@ -22,6 +23,15 @@ export const verifyPractitionerHandler = catchAsync(async (req, res) => {
       "Practitioner not found (or invalid verification status)",
     );
   }
+
+  await createNotification({
+    userId: practitioner.clerkId,
+    type: "practitioner:verification",
+    title: `Practitioner profile ${verificationStatus}`,
+    message: `Your practitioner verification status is now "${verificationStatus}".`,
+    metadata: { practitionerId: practitioner._id, status: verificationStatus },
+    sendEmailAlert: true,
+  });
 
   res.json({ success: true, practitioner });
 });

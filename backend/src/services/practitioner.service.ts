@@ -1,4 +1,5 @@
 import { Practitioner } from "../models/Practitioner.model.ts";
+import { createNotificationsForRole } from "./notification.service.ts";
 
 const ALLOWED_VERIFICATION_STATUSES = ["pending", "approved", "rejected"] as const;
 
@@ -40,11 +41,19 @@ export const findPractitionerById = async (id: string) => {
 };
 
 export const upsertPractitionerProfile = async (userId: string, data: any) => {
-  return Practitioner.findOneAndUpdate(
+  const practitioner = await Practitioner.findOneAndUpdate(
     { clerkId: userId },
     { clerkId: userId, ...data }, 
     { upsert: true, returnDocument: "after" },
   );
+  await createNotificationsForRole({
+    role: "admin",
+    type: "practitioner:pending",
+    title: "New practitioner profile pending",
+    message: `Practitioner ${userId} submitted/updated profile for review.`,
+    metadata: { practitionerId: practitioner?._id, clerkId: userId },
+  });
+  return practitioner;
 };
 
 export const updatePractitionerVerification = async (

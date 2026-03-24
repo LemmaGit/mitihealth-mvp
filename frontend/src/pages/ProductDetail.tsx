@@ -1,4 +1,3 @@
-import { PatientLayout } from "../components/layouts/PatientLayout";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Star, Minus, Plus, ShoppingCart, Heart, ChevronRight } from "lucide-react";
@@ -21,7 +20,6 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
 
   return (
-    <PatientLayout>
       <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -220,6 +218,5 @@ export default function ProductDetail() {
           </div>
         </section>
       </div>
-    </PatientLayout>
   );
 }

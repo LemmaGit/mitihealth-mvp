@@ -8,7 +8,7 @@ interface AuthState {
   authUser: User | null;
   onlineUsers: string[];
   socket: Socket | null;
-  setAuthUser: (user: User) => void;
+  setAuthUser: (user: User | null) => void;
   connectSocket: () => void;
   disconnectSocket: () => void;
 }

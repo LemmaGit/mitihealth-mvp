@@ -55,7 +55,7 @@ export default function PractitionerVerification() {
   const userMap = new Map((rawUsers || []).map((u: any) => [u.clerkId, u]));
 
   const practitioners: Practitioner[] = (rawData || []).map((p: any) => {
-    const user = userMap.get(p.clerkId) || {};
+    const user: any = userMap.get(p.clerkId) || {};
     const name = user.name || p.clerkId || "Unknown Practitioner";
     return {
       id: p._id,

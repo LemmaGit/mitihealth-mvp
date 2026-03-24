@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
 
 export const practitionerApi = (getToken: () => Promise<string | null>) => ({
-  //TODO: check out this one too why not a form data what is happening to the pp
   updateProfile: (data: unknown) => 
     apiClient("/practitioners/me", { method: "POST", body: JSON.stringify(data) }, getToken),
     

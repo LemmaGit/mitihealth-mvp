@@ -1,6 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { Star, CheckCircle } from "lucide-react";
-import type { Practitioner } from "../data/practitioners";
+interface Practitioner {
+  id: string;
+  name: string;
+  title: string;
+  specialties: string[];
+  yearsExp: number;
+  consultations: number;
+  rating: number;
+  price: number;
+  image: string;
+  verified: boolean;
+}
 
 interface Props {
   practitioner: Practitioner;

@@ -1,23 +1,43 @@
-import { LayoutDashboard, Calendar, ClipboardList, BarChart3, MessageSquare } from "lucide-react";
+import {
+  Calendar,
+  ClipboardList,
+  LayoutDashboard,
+  MessageSquare,
+  Package,
+  ShieldCheck,
+  UserRoundCog,
+  Users,
+} from "lucide-react";
 
-//TODO: add orders page 
 const supplierSidebarItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/supplier/" },
-  // { label: "Appointments", icon: Calendar, href: "/supplier/appointments" },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/supplier" },
   { label: "Inventory", icon: ClipboardList, href: "/supplier/inventory" },
-  // { label: "Analytics", icon: BarChart3, href: "/supplier/analytics" },
-  { label: "Messages", icon: MessageSquare, href: "/supplier/messages" },
+  { label: "Orders", icon: Calendar, href: "/supplier/orders" },
+];
+
+const practitionerSidebarItems = [
+  { label: "Consultations", icon: Calendar, href: "/practitioner/chat" },
+  { label: "Profile", icon: UserRoundCog, href: "/practitioner/profile" },
+];
+
+const adminSidebarItems = [
+  { label: "Users", icon: Users, href: "/admin" },
+  { label: "Practitioners", icon: ShieldCheck, href: "/admin/practitioner-verification" },
+  { label: "Products", icon: Package, href: "/admin/product-verification" },
 ];
 
 const patientSidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/patient/dashboard" },
-  { label: "Appointments", icon: Calendar, href: "/patient/appointments" },
-  { label: "Inventory", icon: ClipboardList, href: "/patient/inventory" },
-  { label: "Analytics", icon: BarChart3, href: "/patient/analytics" },
+  { label: "Practitioners", icon: Users, href: "/patient" },
+  { label: "Marketplace", icon: Package, href: "/patient/marketplace" },
+  { label: "Consultations", icon: Calendar, href: "/patient/consultations" },
+  { label: "Orders", icon: ClipboardList, href: "/patient/orders" },
   { label: "Messages", icon: MessageSquare, href: "/patient/messages" },
 ];
 
-export const links = {
-    supplier: supplierSidebarItems,
-    patient: patientSidebarItems,
-}
+export const links: Record<string, { label: string; href: string; icon: any }[]> = {
+  supplier: supplierSidebarItems,
+  practitioner: practitionerSidebarItems,
+  admin: adminSidebarItems,
+  patient: patientSidebarItems,
+};

@@ -1,7 +1,8 @@
+import { lazy } from "react";
 import { Route, Routes } from "react-router-dom"
-import UserManagement from "../pages/admin/UserManagement"
-import PractitionerVerification from "../pages/admin/PractitionerVerification"
-import ProductVerification from "../pages/admin/ProductVerification"
+const UserManagement = lazy(() => import("../pages/admin/UserManagement"));
+const PractitionerVerification = lazy(() => import("../pages/admin/PractitionerVerification"));
+const ProductVerification = lazy(() => import("../pages/admin/ProductVerification"));
 
 function AdminRoutes() {
   return (

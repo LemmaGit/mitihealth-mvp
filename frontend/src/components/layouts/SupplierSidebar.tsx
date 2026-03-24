@@ -26,7 +26,7 @@ export function SupplierSidebar() {
               key={item.label}
               to={item.href}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeClassName="bg-muted text-foreground font-medium"
+              activeClass="bg-muted text-foreground font-medium"
             >
               <item.icon size={18} />
               <span>{item.label}</span>
@@ -38,7 +38,7 @@ export function SupplierSidebar() {
           <NavLink
             to="/supplier/settings"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
-            activeClassName="bg-muted text-foreground font-medium"
+            activeClass="bg-muted text-foreground font-medium"
           >
             <Settings size={18} />
             <span>Settings</span>

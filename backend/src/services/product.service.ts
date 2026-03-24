@@ -1,4 +1,5 @@
 import { Product } from "../models/product.model.ts";
+import { createNotificationsForRole } from "./notification.service.ts";
 
 const ALLOWED_VERIFICATION_PRODUCT_STATUSES = ["approved", "rejected"] as const;
 
@@ -13,6 +14,13 @@ export const createProduct = async (supplierId: string, productData: any) => {
   const product = await Product.create({
     supplierId,
     ...productData,
+  });
+  await createNotificationsForRole({
+    role: "admin",
+    type: "product:pending",
+    title: "New product pending verification",
+    message: `A supplier submitted "${product.name}" for review.`,
+    metadata: { productId: product._id, supplierId },
   });
   return product;
 };

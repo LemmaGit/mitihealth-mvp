@@ -1,24 +1,43 @@
 import { useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart, Shield } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
+import { useMutation } from "@tanstack/react-query";
+import { useAppApi } from "../../hooks/useAppApi";
+import { toast } from "sonner";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, clearCart, totalPrice } = useCart();
+  const { patient } = useAppApi();
 
   const deliveryFee = items.length > 0 ? 50 : 0;
   const grandTotal = totalPrice + deliveryFee;
 
+  const orderMutation = useMutation({
+    mutationFn: async () => {
+      for (const item of items) {
+        await patient.createOrder({
+          productId: (item.product as any)._id || item.product.id,
+          quantity: item.quantity,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success("Order placed. Payment coming soon.");
+      clearCart();
+      navigate("/patient/orders");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to place order"),
+  });
+
   const handleOrder = () => {
-    // toast({ title: "Order Placed! 🎉", description: "Your order has been confirmed. You'll receive a delivery confirmation shortly." });
-    clearCart();
-    setTimeout(() => navigate("/marketplace"), 2000);
+    orderMutation.mutate();
   };
 
   return (
       <>
         <button
-          onClick={() => navigate("/marketplace")}
+          onClick={() => navigate("/patient/marketplace")}
           className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 font-medium text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -34,7 +53,7 @@ const Cart = () => {
             <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto opacity-30" />
             <p className="text-muted-foreground text-lg">Your cart is empty.</p>
             <button
-              onClick={() => navigate("/marketplace")}
+              onClick={() => navigate("/patient/marketplace")}
               className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-headline font-bold hover:bg-primary-container transition-all"
             >
               Browse Marketplace
@@ -48,7 +67,7 @@ const Cart = () => {
                 <div key={product.id} className="bg-surface-container-lowest rounded-2xl p-5 flex gap-5 shadow-botanical">
                   <div
                     className="w-24 h-24 rounded-xl overflow-hidden bg-surface-container shrink-0 cursor-pointer"
-                    onClick={() => navigate(`/marketplace/${product.id}`)}
+                    onClick={() => navigate(`/patient/marketplace/${product.id}`)}
                   >
                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" width={96} height={96} />
                   </div>
@@ -56,7 +75,7 @@ const Cart = () => {
                     <div>
                       <h3
                         className="font-headline font-bold text-foreground cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => navigate(`/marketplace/${product.id}`)}
+                        onClick={() => navigate(`/patient/marketplace/${product.id}`)}
                       >
                         {product.name}
                       </h3>

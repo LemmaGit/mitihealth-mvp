@@ -14,6 +14,7 @@ import productRouter from "./routes/product.route.ts";
 import consultationRouter from "./routes/consultation.route.ts";
 import orderRouter from "./routes/order.route.ts";
 import messageRouter from "./routes/message.route.ts";
+import notificationRouter from "./routes/notification.route.ts";
 
 import ApiError from "./utils/ApiError.ts";
 import { errorConverter, errorHandler } from "./middlewares/error.ts";
@@ -43,6 +44,7 @@ app.use("/api/products", productRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/notifications", notificationRouter);
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, "Not found"));
 });

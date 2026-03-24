@@ -1,9 +1,10 @@
-import { SupplierLayout } from "../../components/layouts/SupplierLayout";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Download, Eye, AlertTriangle, Package, CheckCircle2, ChevronRight } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import { useAppApi } from "../../hooks/useAppApi";
+import { useQuery } from "@tanstack/react-query";
 
 const chartData = [
   { day: "MON", value: 3200 },
@@ -21,12 +22,6 @@ const alerts = [
   { icon: CheckCircle2, label: "Boswellia Resin", detail: "Inventory levels healthy", color: "text-primary" },
 ];
 
-const recentOrders = [
-  { name: "Wild Ginger Extract", order: "#88392 • 2h ago", qty: "24 Units", status: "PROCESSING", total: "$450.00" },
-  { name: "Sacred Myrrh Resin", order: "#88391 • 5h ago", qty: "10 kg", status: "TRANSIT", total: "$1,200.00" },
-  { name: "Ethiopian Honey", order: "#88389 • Yesterday", qty: "50 Jars", status: "DELIVERED", total: "$875.00" },
-];
-
 const statusColor: Record<string, string> = {
   PROCESSING: "bg-secondary/20 text-secondary",
   TRANSIT: "bg-destructive/20 text-destructive",
@@ -34,6 +29,11 @@ const statusColor: Record<string, string> = {
 };
 
 export default function SupplierDashboard() {
+  const { supplier } = useAppApi();
+  const { data: supplierOrders = [] } = useQuery({
+    queryKey: ["supplier", "orders", "dashboard"],
+    queryFn: () => supplier.getSupplierOrders(),
+  });
   return (
       <div className="space-y-8">
         {/* Hero banner + stat cards */}
@@ -158,22 +158,22 @@ export default function SupplierDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentOrders.map((o) => (
+                  {(supplierOrders as any[]).slice(0, 5).map((o: any) => (
                     <TableRow key={o.name} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-lg bg-muted" />
                           <div>
-                            <p className="text-sm font-medium">{o.name}</p>
-                            <p className="text-xs text-muted-foreground">Order {o.order}</p>
+                            <p className="text-sm font-medium">{o.productId?.name || "Product"}</p>
+                            <p className="text-xs text-muted-foreground">Order #{o._id?.slice(-6)}</p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm">{o.qty}</TableCell>
+                      <TableCell className="text-sm">{o.quantity}</TableCell>
                       <TableCell>
-                        <Badge className={statusColor[o.status]}>{o.status}</Badge>
+                        <Badge className={statusColor[o.orderStatus?.toUpperCase()] || "bg-primary/20 text-primary"}>{o.orderStatus}</Badge>
                       </TableCell>
-                      <TableCell className="text-right text-sm font-medium">{o.total}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{o.productId?.price || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

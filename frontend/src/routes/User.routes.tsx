@@ -1,15 +1,16 @@
+import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom"
-import MainLayout from "../components/layouts/MainLayout"
-import SupplierRoutes from "./Supplier.routes"
-import PatientRoutes from "./Patient.routes"
-import PractitionerRoutes from "./Practitioner.routes"
-import ProductDetail from "../pages/ProductDetail"
 import { useUser } from "@clerk/react"
 import { PropagateLoader } from "react-spinners"
 import Loader from "../components/Loader"
-import AdminRoutes from "./Admin.routes"
 import { useAuthStore } from "../store/useAuthStore"
-import { PatientLayout } from "../components/layouts/PatientLayout"
+const MainLayout = lazy(() => import("../components/layouts/MainLayout"));
+const SupplierRoutes = lazy(() => import("./Supplier.routes"));
+const PatientRoutes = lazy(() => import("./Patient.routes"));
+const PractitionerRoutes = lazy(() => import("./Practitioner.routes"));
+const ProductDetail = lazy(() => import("../pages/ProductDetail"));
+const AdminRoutes = lazy(() => import("./Admin.routes"));
+const PatientLayout = lazy(() => import("../components/layouts/PatientLayout").then((m) => ({ default: m.PatientLayout })));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();

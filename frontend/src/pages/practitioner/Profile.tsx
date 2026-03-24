@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -24,7 +25,7 @@ export default function PractitionerProfile() {
   const [imageModified, setImageModified] = useState(false);
 
   const methods = useForm<ProfileFormValues>({
-    resolver: zodResolver(practitionerProfileSchema),
+    resolver: zodResolver(practitionerProfileSchema) as any,
     defaultValues: defaultValuesObj,
   });
 
@@ -35,6 +36,17 @@ export default function PractitionerProfile() {
   } = methods;
 
   const isFormModified = isDirty || imageModified;
+  const { data: existing } = useQuery({
+    queryKey: ["practitioner", "self", user?.id],
+    queryFn: () => practitioner.getPractitioner(user?.id!),
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (existing) {
+      reset(existing);
+    }
+  }, [existing, reset]);
 
   const mutation = useMutation({
     mutationFn: (data: ProfileFormValues) => practitioner.updateProfile(data),
@@ -42,7 +54,6 @@ export default function PractitionerProfile() {
       toast.success("Profile saved successfully!");
       queryClient.invalidateQueries({ queryKey: ["practitioner", user?.id] });
       console.log("Profile saved successfully!");
-      //TODO: image upload means we need to update the user model and clerk user image URLS
       navigate("/");
     },
     onError: (error: any) => {
@@ -80,6 +91,9 @@ export default function PractitionerProfile() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {existing?.verificationStatus === "pending" && (
+              <p className="text-xs rounded-lg bg-secondary/20 text-secondary px-3 py-2">Waiting for verification</p>
+            )}
             <Button
               type="button"
               variant="ghost"

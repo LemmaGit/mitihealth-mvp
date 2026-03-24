@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, type ReactNode, useCallback } from "react";
-import type { Product } from "../data/products";
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  [key: string]: any;
+}
 
 export interface CartItem {
   product: Product;

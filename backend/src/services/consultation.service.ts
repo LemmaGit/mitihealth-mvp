@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { Consultation } from "../models/consultation.model.ts";
+import { createNotification } from "./notification.service.ts";
 
 export const createConsultationForPatient = async (patientId: string, data: any) => {
   const jitsiRoom =
@@ -7,7 +8,7 @@ export const createConsultationForPatient = async (patientId: string, data: any)
       ? `mitihealth-${uuidv4().replace(/-/g, "")}`
       : null;
 
-  return Consultation.create({
+  const consultation = await Consultation.create({
     patientId,
     practitionerId: data.practitionerId,
     consultationDate: data.consultationDate,
@@ -16,6 +17,15 @@ export const createConsultationForPatient = async (patientId: string, data: any)
     status: "booked",
     jitsiRoom,
   });
+  await createNotification({
+    userId: data.practitionerId,
+    type: "consultation:new",
+    title: "New consultation booking",
+    message: `You have a new ${data.consultationType} consultation booking.`,
+    metadata: { consultationId: consultation._id },
+    sendEmailAlert: true,
+  });
+  return consultation;
 };
 
 export const getConsultationsForUser = async (userId: string) => {

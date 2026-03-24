@@ -23,13 +23,20 @@ export default function CompletePractitionerProfile() {
 
     await fetch('http://localhost:5000/api/practitioners/me',{
         method:"POST",
-        body:{
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
             specialization: form.specialization,
-      experienceYears: Number(form.experienceYears),
+      practicingSinceEC: Number(form.experienceYears),
       location: form.location,
-      consultationFee: Number(form.consultationFee),
+      consultationTypes: {
+        chat: { enabled: true, price: Number(form.consultationFee) },
+        audio: { enabled: false, price: 0 },
+        video: { enabled: false, price: 0 },
+      },
       conditionsTreated: conditions,
-        }
+        }),
       
     });
 
