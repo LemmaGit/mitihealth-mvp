@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import type { UserResource as User } from "@clerk/shared/types";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+const SOCKET_BASE_URL = String(BASE_URL || "").replace(/\/api\/?$/, "");
 
 interface AuthState {
   authUser: User | null;
@@ -22,21 +23,28 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   connectSocket: () => {
     const { authUser, socket } = get();
-    if (!authUser || socket?.connected) return;
+    if (!authUser) return;
 
-    const newSocket = io(BASE_URL, {
+    // Reuse existing socket instance to avoid duplicate connections
+    // during StrictMode re-renders and auth effect replays.
+    if (socket) {
+      if (!socket.connected) socket.connect();
+      return;
+    }
+
+    const newSocket = io(SOCKET_BASE_URL, {
+      autoConnect: false,
       query: {
         userId: authUser.id, // Clerk user id
       },
     });
-
-    newSocket.connect();
 
     newSocket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
 
     set({ socket: newSocket });
+    newSocket.connect();
   },
 
   disconnectSocket: () => {

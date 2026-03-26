@@ -1,5 +1,5 @@
 import { Badge } from "../../ui/badge";
-import { Eye, Bell, Pencil, Trash2, Image as ImageIcon } from "lucide-react";
+import { Eye, Pencil, Trash2, Image as ImageIcon } from "lucide-react";
 import type { Product } from "./types";
 
 const statusColors: Record<string, string> = {
@@ -17,36 +17,36 @@ interface ProductCardProps {
 
 export function ProductCard({ product: p, onEdit, onDelete }: ProductCardProps) {
   return (
-    <div className="overflow-hidden rounded-xl bg-card shadow-botanical hover:shadow-lg transition-shadow">
-      <div className="relative h-48 bg-muted flex items-center justify-center overflow-hidden">
+    <div className="bg-card shadow-botanical hover:shadow-lg rounded-xl overflow-hidden transition-shadow">
+      <div className="relative flex justify-center items-center bg-muted h-48 overflow-hidden">
         {p.imageUrls && p.imageUrls.length > 0 ? (
           <img src={p.imageUrls[0]} alt={p.name} className="w-full h-full object-cover" />
         ) : (
-          <ImageIcon className="text-muted-foreground opacity-30" size={48} />
+          <ImageIcon className="opacity-30 text-muted-foreground" size={48} />
         )}
         <Badge className={`absolute left-3 top-3 ${statusColors[p.status]}`}>
           {p.status}
         </Badge>
         {p.verified && (
-          <Badge className="absolute right-3 top-3 bg-primary/10 text-primary border-primary/20">
+          <Badge className="top-3 right-3 absolute bg-primary/10 border-primary/20 text-primary">
             Verified
           </Badge>
         )}
       </div>
       <div className="p-4">
-        <div className="flex items-start justify-between">
+        <div className="flex justify-between items-start">
           <h3 className="font-display font-semibold leading-tight">{p.name}</h3>
-          <span className="ml-2 whitespace-nowrap text-sm font-bold">{p.price}</span>
+          <span className="ml-2 font-bold text-sm whitespace-nowrap">{p.price}</span>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.desc}</p>
-        <div className="mt-4 flex items-center justify-between">
+        <p className="mt-2 text-muted-foreground text-xs line-clamp-2">{p.desc}</p>
+        <div className="flex justify-between items-center mt-4">
           <div>
-            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Inventory</span>
+            <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">Inventory</span>
             <p className={`text-sm font-semibold ${p.invColor}`}>{p.inv}</p>
           </div>
           <div className="flex gap-2">
             {p.status === "INACTIVE" && <Eye size={16} className="text-muted-foreground cursor-pointer" />}
-            {p.status === "OUT OF STOCK" && <Bell size={16} className="text-muted-foreground cursor-pointer" />}
+            {/* {p.status === "OUT OF STOCK" && <Bell size={16} className="text-muted-foreground cursor-pointer" />} */}
             <button onClick={() => onEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
               <Pencil size={16} />
             </button>

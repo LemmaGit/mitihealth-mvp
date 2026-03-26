@@ -9,7 +9,7 @@ import type { ProfileFormValues } from "./profileSchema";
 
 const PREDEFINED_SPECIALIZATIONS = ["clinical_herbalist", "traditional_healer", "naturopath", "ethnobotanist"];
 
-export default function ProfessionalIdentity() {
+export default function ProfessionalIdentity({ disabled = false }: { disabled?: boolean }) {
   const { register, watch, setValue, formState: { errors } } = useFormContext<ProfileFormValues>();
   const specialization = watch("specialization");
   const consultationTypes = watch("consultationTypes");
@@ -41,28 +41,29 @@ export default function ProfessionalIdentity() {
   };
 
   return (
-    <section className="rounded-xl bg-card p-6 shadow-botanical">
-      <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-bold text-foreground">
+    <section className="bg-card shadow-botanical p-6 rounded-xl">
+      <h2 className="flex items-center gap-2 mb-6 font-display font-bold text-foreground text-lg">
         <Stethoscope size={20} className="text-primary" />
         Professional Identity
       </h2>
 
       <div className="space-y-5">
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <label className="block mb-1.5 font-medium text-muted-foreground text-xs uppercase tracking-widest">
             Full Name
           </label>
           <Input className="bg-muted/50" readOnly value={user?.fullName || ""} />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="gap-4 grid sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <label className="block mb-1.5 font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Specialization
             </label>
             <Select
               value={selectValue}
               onValueChange={(v) => {
+                if (disabled) return; // Prevent changes when disabled
                 if (v === "other") {
                   setIsOtherSelected(true);
                   setValue("specialization", "", { shouldDirty: true });
@@ -71,6 +72,7 @@ export default function ProfessionalIdentity() {
                   setValue("specialization", v, { shouldDirty: true });
                 }
               }}
+              disabled={disabled}
             >
               <SelectTrigger className={`bg-muted/50 ${errors.specialization ? "border-destructive" : ""}`}>
                 <SelectValue placeholder="Select Specialization"/>
@@ -83,19 +85,20 @@ export default function ProfessionalIdentity() {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-            {errors.specialization && <span className="text-xs text-destructive">{errors.specialization.message}</span>}
+            {errors.specialization && <span className="text-destructive text-xs">{errors.specialization.message}</span>}
             
             {showCustomInput && (
               <Input
                 value={isCustomSpec ? specialization : ""}
-                onChange={(e) => setValue("specialization", e.target.value, { shouldDirty: true })}
+                onChange={(e) => !disabled && setValue("specialization", e.target.value, { shouldDirty: true })}
                 placeholder="Enter your custom specialization"
-                className="mt-2 bg-muted/50"
+                className="bg-muted/50 mt-2"
+                disabled={disabled}
               />
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <label className="block mb-1.5 font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Practicing Since (EC)
             </label>
             <Input
@@ -103,13 +106,14 @@ export default function ProfessionalIdentity() {
               {...register("practicingSinceEC", { valueAsNumber: true })}
               placeholder="e.g. 2008"
               className={`bg-muted/50 ${errors.practicingSinceEC ? "border-destructive" : ""}`}
+              readOnly
             />
-            {errors.practicingSinceEC && <span className="text-xs text-destructive">{errors.practicingSinceEC.message}</span>}
+            {errors.practicingSinceEC && <span className="text-destructive text-xs">{errors.practicingSinceEC.message}</span>}
           </div>
         </div>
 
         <div>
-           <label className="mb-3 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+           <label className="block mb-3 font-medium text-muted-foreground text-xs uppercase tracking-widest">
             Consultation Types & Pricing
           </label>
           <div className="space-y-3">
@@ -128,24 +132,25 @@ export default function ProfessionalIdentity() {
                     <Checkbox
                       checked={isEnabled}
                       onCheckedChange={(checked) =>
-                        setValue(`consultationTypes.${type.key}.enabled`, !!checked, { shouldDirty: true })
+                        !disabled && setValue(`consultationTypes.${type.key}.enabled`, !!checked, { shouldDirty: true })
                       }
-                      className="border-primary data-[state=checked]:bg-primary"
+                      disabled={disabled}
+                      className="data-[state=checked]:bg-primary border-primary"
                     />
                     <div>
-                      <p className="text-sm font-medium text-foreground">{type.label}</p>
-                      <p className="text-[0.65rem] uppercase tracking-widest text-muted-foreground">
+                      <p className="font-medium text-foreground text-sm">{type.label}</p>
+                      <p className="text-[0.65rem] text-muted-foreground uppercase tracking-widest">
                         {type.sub}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-muted-foreground">ETB</span>
+                    <span className="font-medium text-muted-foreground text-xs">ETB</span>
                     <Input
                       type="number"
                       {...register(`consultationTypes.${type.key}.price`, { valueAsNumber: true })}
-                      disabled={!isEnabled}
-                      className="h-9 w-24 bg-card text-right disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!isEnabled || disabled}
+                      className="bg-card disabled:opacity-50 w-24 h-9 text-right disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -156,39 +161,43 @@ export default function ProfessionalIdentity() {
         
         {/* Conditions Treated */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <label className="block mb-1.5 font-medium text-muted-foreground text-xs uppercase tracking-widest">
             Conditions Treated
           </label>
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap gap-2">
               {conditionsTreated.map((cond, idx) => (
-                <span key={idx} className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <span key={idx} className="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full font-medium text-primary text-xs">
                   {cond}
-                  <button type="button" onClick={() => removeCondition(idx)} className="rounded-full hover:bg-primary/20 p-0.5 text-primary">
-                    <X size={12} />
-                  </button>
+                  {!disabled && (
+                    <button type="button" onClick={() => removeCondition(idx)} className="hover:bg-primary/20 p-0.5 rounded-full text-primary">
+                      <X size={12} />
+                    </button>
+                  )}
                 </span>
               ))}
             </div>
             <Input
               value={conditionInput}
-              onChange={(e) => setConditionInput(e.target.value)}
+              onChange={(e) => !disabled && setConditionInput(e.target.value)}
               onKeyDown={handleAddCondition}
               placeholder="e.g. Insomnia, Back pain (Press Enter or comma to add)"
               className="bg-muted/50"
+              disabled={disabled}
             />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <label className="block mb-1.5 font-medium text-muted-foreground text-xs uppercase tracking-widest">
             Location
           </label>
           <Input 
             {...register("location")} 
-            className={`bg-muted/50 ${errors.location ? "border-destructive" : ""}`} 
+            className={`bg-muted/50 ${errors.location ? "border-destructive" : ""}`}
+            disabled={disabled}
           />
-          {errors.location && <span className="text-xs text-destructive">{errors.location.message}</span>}
+          {errors.location && <span className="text-destructive text-xs">{errors.location.message}</span>}
         </div>
       </div>
     </section>

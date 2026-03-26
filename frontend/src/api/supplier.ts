@@ -15,4 +15,7 @@ export const supplierApi = (getToken: () => Promise<string | null>) => ({
     
   updateOrderStatus: (orderId: string, data: unknown) => 
     apiClient(`/orders/${orderId}/status`, { method: "PATCH", body: JSON.stringify(data) }, getToken),
+
+  getOrderDetails: (orderId: string) => 
+    apiClient(`/orders/${orderId}`, { method: "GET" }, getToken),
 });

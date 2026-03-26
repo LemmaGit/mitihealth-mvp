@@ -2,11 +2,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, Leaf, MessageCircle, User } from "lucide-react";
 
 const navItems = [
-  { label: "Home", icon: Home, to: "/dashboard" },
-  { label: "Find", icon: Search, to: "/" },
-  { label: "Shop", icon: Leaf, to: "/marketplace" },
+  { label: "Home", icon: Home, to: "/patient/dashboard" },
+  { label: "Find", icon: Search, to: "/patient" },
+  { label: "Shop", icon: Leaf, to: "/patient/marketplace" },
   { label: "Chat", icon: MessageCircle, to: "/messages" },
-  { label: "Account", icon: User, to: "/account" },
+  { label: "Account", icon: User, to: "/patient/consultations" },
 ];
 
 const MobileBottomNav = () => {
@@ -14,8 +14,8 @@ const MobileBottomNav = () => {
   const navigate = useNavigate();
 
   const isActive = (to: string) => {
-    if (to === "/") return location.pathname === "/" || location.pathname.startsWith("/practitioner") || location.pathname.startsWith("/booking");
-    if (to === "/marketplace") return location.pathname.startsWith("/marketplace") || location.pathname === "/cart";
+    if (to === "/patient") return location.pathname === "/patient" || location.pathname.startsWith("/patient/practitioner") || location.pathname.startsWith("/patient/booking");
+    if (to === "/patient/marketplace") return location.pathname.startsWith("/patient/marketplace") || location.pathname === "/patient/cart";
     return location.pathname === to;
   };
 

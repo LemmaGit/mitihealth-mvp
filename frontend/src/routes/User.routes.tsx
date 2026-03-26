@@ -3,14 +3,13 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import { useUser } from "@clerk/react"
 import { PropagateLoader } from "react-spinners"
 import Loader from "../components/Loader"
-import { useAuthStore } from "../store/useAuthStore"
+import PractitionerGuard from "../components/PractitionerGuard"
 const MainLayout = lazy(() => import("../components/layouts/MainLayout"));
 const SupplierRoutes = lazy(() => import("./Supplier.routes"));
 const PatientRoutes = lazy(() => import("./Patient.routes"));
 const PractitionerRoutes = lazy(() => import("./Practitioner.routes"));
-const ProductDetail = lazy(() => import("../pages/ProductDetail"));
 const AdminRoutes = lazy(() => import("./Admin.routes"));
-const PatientLayout = lazy(() => import("../components/layouts/PatientLayout").then((m) => ({ default: m.PatientLayout })));
+const Messages = lazy(() => import("../pages/Messages"));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -34,22 +33,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function UserRoutes() {
-  const {authUser} = useAuthStore()
-  const role = authUser?.unsafeMetadata?.role
   return (
     <Routes>
       <Route element={<ProtectedRoute>
-        {role!=="patient" ?
-        <MainLayout />:
-        <PatientLayout/>
-        }
-        
+        <MainLayout />
         </ProtectedRoute>}>
         <Route path="admin/*" element={<AdminRoutes />} />
         <Route path="supplier/*" element={<SupplierRoutes />} />
         <Route path="patient/*" element={<PatientRoutes />} />
-        <Route path="practitioner/*" element={<PractitionerRoutes />} />  
-        <Route path="product/:id" element={<ProductDetail />} />
+        <Route path="practitioner/*" element={
+          <PractitionerGuard>
+            <PractitionerRoutes />
+          </PractitionerGuard>
+        } />  
+        <Route path="messages" element={<Messages />} />
       </Route>
     </Routes>
   )

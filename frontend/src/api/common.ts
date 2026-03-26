@@ -26,8 +26,14 @@ export const commonApi = (getToken: () => Promise<string | null>) => ({
   getPractitioner: (id: string) => 
     apiClient(`/practitioners/${id}`, { method: "GET" }, getToken),
     
+  getUser: (id: string) => 
+    apiClient(`/users/${id}`, { method: "GET" }, getToken),
+    
   getMessages: (receiverId: string) => 
     apiClient(`/messages/${receiverId}`, { method: "GET" }, getToken),
+
+  getUsersForSidebar: () => 
+    apiClient(`/messages/users`, { method: "GET" }, getToken),
   
   sendMessage: (receiverId: string, data: FormData | { text?: string }) =>
     apiClient(
@@ -35,4 +41,7 @@ export const commonApi = (getToken: () => Promise<string | null>) => ({
       { method: "POST", body: data instanceof FormData ? data : JSON.stringify(data) },
       getToken,
     ),
+
+  hideConversation: (userId: string) =>
+    apiClient(`/messages/hide/${userId}`, { method: "POST" }, getToken),
 });

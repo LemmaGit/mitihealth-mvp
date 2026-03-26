@@ -1,6 +1,5 @@
-import { LogOut, Plus } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
-import { Button } from "../ui/button";
+import { LogOut} from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { useClerk } from "@clerk/react";
 import { useAuthStore } from "../../store/useAuthStore";
 
@@ -9,11 +8,11 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
    const { signOut } = useClerk()
 
     return (
-    <aside className="hidden w-56 shrink-0 flex-col justify-between border-r border-border/15 bg-card p-4 lg:flex">
+    <aside className="hidden lg:flex flex-col justify-between bg-card p-4 border-border/15 border-r w-56 shrink-0">
       <div>
         <div className="mb-8 px-2">
-          <h2 className="font-display text-lg font-bold text-foreground">Modern Herbalist</h2>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">{String(authUser?.unsafeMetadata?.role || "")}</p>
+          <h2 className="font-display font-bold text-foreground text-lg">Modern Herbalist</h2>
+          <p className="text-muted-foreground text-xs uppercase tracking-wider">{String(authUser?.unsafeMetadata?.role || "")}</p>
         </div>
 
         <nav className="space-y-1">
@@ -21,8 +20,11 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
             <NavLink
               key={item.label}
               to={item.href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              // activeClass="bg-muted text-foreground font-medium"
+              className={({ isActive }) => 
+                `flex items-center gap-3 hover:bg-muted px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground text-sm transition-colors ${
+                  isActive ? "bg-muted text-foreground" : ""
+                }`
+              }
             >
               <item.icon size={18} />
               <span>{item.label}</span>
@@ -33,19 +35,7 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
       </div>
 
       <div className="space-y-2">
-        {authUser?.unsafeMetadata?.role === "patient" && (
-        <Button className="w-full botanical-gradient text-primary-foreground" asChild>
-          <Link to="/patient">
-            <Plus size={16} />
-            New Consultation
-          </Link>
-        </Button>
-        )}
-        {/* <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted">
-          <HelpCircle size={18} />
-          <span>Support</span>
-        </button> */}
-        <button onClick={() => signOut()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted">
+        <button onClick={() => signOut()} className="flex items-center gap-3 hover:bg-muted px-3 py-2.5 rounded-lg w-full text-muted-foreground text-sm transition-colors">
           <LogOut size={18} />
           <span>Sign Out</span>
         </button>

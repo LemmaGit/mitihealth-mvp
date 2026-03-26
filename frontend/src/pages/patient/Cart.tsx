@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart, Shield } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart, Shield, Loader2 } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 import { useMutation } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
@@ -38,61 +38,61 @@ const Cart = () => {
       <>
         <button
           onClick={() => navigate("/patient/marketplace")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 font-medium text-sm"
+          className="flex items-center gap-2 mb-8 font-medium text-muted-foreground hover:text-primary text-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Continue Shopping
         </button>
 
-        <h1 className="font-headline text-4xl font-bold text-primary tracking-tight mb-8">
+        <h1 className="mb-8 font-headline font-bold text-primary text-4xl tracking-tight">
           Your Cart
         </h1>
 
         {items.length === 0 ? (
-          <div className="text-center py-20 space-y-4">
-            <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto opacity-30" />
+          <div className="space-y-4 py-20 text-center">
+            <ShoppingCart className="opacity-30 mx-auto w-16 h-16 text-muted-foreground" />
             <p className="text-muted-foreground text-lg">Your cart is empty.</p>
             <button
               onClick={() => navigate("/patient/marketplace")}
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-headline font-bold hover:bg-primary-container transition-all"
+              className="bg-primary hover:bg-primary-container px-6 py-3 rounded-xl font-headline font-bold text-primary-foreground transition-all"
             >
               Browse Marketplace
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="gap-10 grid grid-cols-1 lg:grid-cols-12">
             {/* Cart Items */}
-            <div className="lg:col-span-8 space-y-4">
+            <div className="space-y-4 lg:col-span-8">
               {items.map(({ product, quantity }) => (
-                <div key={product.id} className="bg-surface-container-lowest rounded-2xl p-5 flex gap-5 shadow-botanical">
+                <div key={product.id} className="flex gap-5 bg-surface-container-lowest shadow-botanical p-5 rounded-2xl">
                   <div
-                    className="w-24 h-24 rounded-xl overflow-hidden bg-surface-container shrink-0 cursor-pointer"
+                    className="bg-surface-container rounded-xl w-24 h-24 overflow-hidden cursor-pointer shrink-0"
                     onClick={() => navigate(`/patient/marketplace/${product.id}`)}
                   >
                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" width={96} height={96} />
                   </div>
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                  <div className="flex flex-col flex-1 justify-between min-w-0">
                     <div>
                       <h3
-                        className="font-headline font-bold text-foreground cursor-pointer hover:text-primary transition-colors"
+                        className="font-headline font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
                         onClick={() => navigate(`/patient/marketplace/${product.id}`)}
                       >
                         {product.name}
                       </h3>
-                      <p className="text-xs text-muted-foreground">{product.weight}</p>
+                      <p className="text-muted-foreground text-xs">{product.weight}</p>
                     </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-2 bg-surface-container-low rounded-lg p-1">
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex items-center gap-2 bg-surface-container-low p-1 rounded-lg">
                         <button
                           onClick={() => updateQuantity(product.id, quantity - 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container transition-all text-foreground"
+                          className="flex justify-center items-center hover:bg-surface-container rounded-md w-8 h-8 text-foreground transition-all"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold text-foreground">{quantity}</span>
+                        <span className="w-6 font-bold text-foreground text-sm text-center">{quantity}</span>
                         <button
                           onClick={() => updateQuantity(product.id, quantity + 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container transition-all text-foreground"
+                          className="flex justify-center items-center hover:bg-surface-container rounded-md w-8 h-8 text-foreground transition-all"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -102,7 +102,7 @@ const Cart = () => {
                   </div>
                   <button
                     onClick={() => removeItem(product.id)}
-                    className="self-start p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                    className="self-start hover:bg-destructive/10 p-2 rounded-lg text-muted-foreground hover:text-destructive transition-all"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -112,8 +112,8 @@ const Cart = () => {
 
             {/* Order Summary */}
             <div className="lg:col-span-4">
-              <div className="bg-surface-container-lowest rounded-3xl shadow-botanical p-6 sticky top-28 space-y-6">
-                <h3 className="text-xl font-headline font-bold text-foreground">Order Summary</h3>
+              <div className="top-28 sticky space-y-6 bg-surface-container-lowest shadow-botanical p-6 rounded-3xl">
+                <h3 className="font-headline font-bold text-foreground text-xl">Order Summary</h3>
 
                 <div className="space-y-3">
                   <div className="flex justify-between text-muted-foreground text-sm">
@@ -125,7 +125,7 @@ const Cart = () => {
                     <span>{deliveryFee.toFixed(2)} ETB</span>
                   </div>
                   <div className="tibeb-divider" />
-                  <div className="flex justify-between text-lg font-bold text-foreground">
+                  <div className="flex justify-between font-bold text-foreground text-lg">
                     <span>Total</span>
                     <span>{grandTotal.toLocaleString()} ETB</span>
                   </div>
@@ -133,12 +133,22 @@ const Cart = () => {
 
                 <button
                   onClick={handleOrder}
-                  className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-headline font-bold text-lg hover:bg-primary-container transition-all flex items-center justify-center gap-3"
+                  disabled={orderMutation.isPending || items.length === 0}
+                  className="flex justify-center items-center gap-3 bg-primary hover:bg-primary-container disabled:opacity-50 py-4 rounded-xl w-full font-headline font-bold text-primary-foreground text-lg transition-all disabled:cursor-not-allowed"
                 >
-                  <Shield className="w-5 h-5" />
-                  Place Order
+                  {orderMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Placing Order...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-5 h-5" />
+                      Place Order
+                    </>
+                  )}
                 </button>
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs text-center">
                   Payment processed securely via Telebirr & Chapa
                 </p>
               </div>

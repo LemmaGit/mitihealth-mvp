@@ -1,104 +1,190 @@
 import { useNavigate } from "react-router-dom";
-import { Star, CheckCircle } from "lucide-react";
-interface Practitioner {
+import { Card, CardContent } from "./ui/card";
+import { MapPin } from "lucide-react";
+import { Button } from "./ui/button";
+import { Calendar } from "lucide-react";
+import { Badge } from "./ui/badge";
+import { CheckCircle } from "lucide-react";
+
+export interface PractitionerCardModel {
   id: string;
-  name: string;
   title: string;
+  location: string;
   specialties: string[];
   yearsExp: number;
-  consultations: number;
-  rating: number;
-  price: number;
   image: string;
+  verified: boolean;
+  profileImage: string;
+  firstName: string;
+  lastName: string;
+}
+
+
+interface PractitionerImageProps {
+  image: string;
+  firstName: string;
+  lastName: string;
   verified: boolean;
 }
 
 interface Props {
-  practitioner: Practitioner;
+  practitioner: PractitionerCardModel;
+}
+
+
+interface BookButtonProps {
+  practitionerId: string;
+  onBook: (id: string) => void;
+}
+interface SpecialtiesListProps {
+  specialties: string[];
+}
+
+interface ExperienceBadgeProps {
+  yearsExp: number;
+}
+
+interface PractitionerInfoProps {
+  firstName: string;
+  lastName: string;
+  location: string;
 }
 
 const PractitionerCard = ({ practitioner }: Props) => {
   const navigate = useNavigate();
 
+  const handleBook = (id: string) => {
+    navigate(`/patient/booking/${id}`);
+  };
+
   return (
-    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-botanical hover:shadow-lg transition-all duration-300 group">
-      <div className="flex flex-col sm:flex-row gap-5 p-6">
-        {/* Image */}
-        <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-surface-container">
-          <img
-            src={practitioner.image}
-            alt={practitioner.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            width={128}
-            height={128}
+    <Card className="group flex flex-col shadow-botanical hover:shadow-lg h-full overflow-hidden transition-all duration-300">
+      <PractitionerImage
+        image={practitioner.profileImage! || practitioner.image}
+        firstName={practitioner.firstName}
+        lastName={practitioner.lastName}
+        verified={practitioner.verified}
+      />
+      
+      <CardContent className="flex flex-col flex-1 p-5">
+        <div className="flex-1">
+          <PractitionerInfo
+            firstName={practitioner.firstName}
+            lastName={practitioner.lastName}
+            location={practitioner.location}
           />
-          {practitioner.verified && (
-            <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-              VERIFIED
-            </div>
-          )}
+          
+          <SpecialtiesList specialties={practitioner.specialties} />
+          
+          <ExperienceBadge yearsExp={practitioner.yearsExp} />
         </div>
-
-        {/* Info */}
-        <div className="flex-1 flex flex-col justify-between min-w-0">
-          <div>
-            <span className="text-secondary font-label text-xs tracking-widest uppercase">
-              {practitioner.title}
-            </span>
-            <h3 className="text-xl font-headline font-bold text-foreground mt-0.5 leading-tight">
-              {practitioner.name}
-            </h3>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {practitioner.specialties.slice(0, 2).map((s) => (
-                <span
-                  key={s}
-                  className="px-3 py-1 rounded-full bg-surface-container-low text-primary text-xs font-medium"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-5 mt-4">
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-primary">{practitioner.yearsExp}+</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Years</span>
-            </div>
-            <div className="h-8 w-px bg-outline-variant/30" />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-primary">{practitioner.consultations}</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Consults</span>
-            </div>
-            <div className="h-8 w-px bg-outline-variant/30" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="text-lg font-bold text-primary">{practitioner.rating}</span>
-                <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />
-              </div>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Rating</span>
-            </div>
-          </div>
+        
+        <div className="mt-4 pt-2">
+          <BookButton
+            practitionerId={practitioner.id}
+            onBook={handleBook}
+          />
         </div>
+      </CardContent>
+    </Card>
+  );
+};
 
-        {/* Price + Book */}
-        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between gap-3 sm:min-w-[120px]">
-          <div className="text-right">
-            <span className="text-2xl font-bold text-primary">{practitioner.price}</span>
-            <span className="text-xs text-muted-foreground ml-1">ETB</span>
-          </div>
-          <button
-            onClick={() => navigate(`/practitioner/${practitioner.id}`)}
-            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-headline font-bold text-sm hover:bg-primary-container transition-all shadow-sm hover:shadow-md"
-          >
-            Book →
-          </button>
-        </div>
-      </div>
+
+
+export const PractitionerImage = ({ image, firstName, lastName, verified }: PractitionerImageProps) => {
+  return (
+    <div className="relative bg-muted w-full aspect-4/3 overflow-hidden">
+      <img
+        src={image}
+        alt={`${firstName} ${lastName}`}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+      {verified && (
+        <Badge 
+          variant="secondary" 
+          className="top-3 left-3 absolute gap-1 bg-primary/90 hover:bg-primary/90 shadow-sm backdrop-blur-sm px-2.5 py-1 font-semibold text-primary-foreground text-xs"
+        >
+          <CheckCircle className="size-3" />
+          Verified
+        </Badge>
+      )}
     </div>
   );
 };
 
+
+
+
+export const PractitionerInfo = ({ firstName, lastName, location }: PractitionerInfoProps) => {
+  return (
+    <div className="mb-3">
+      <h3 className="font-headline font-bold text-foreground text-lg line-clamp-1 leading-tight">
+        {firstName} {lastName}
+      </h3>
+      <p className="flex items-center gap-1.5 mt-1 text-muted-foreground text-sm">
+        <MapPin className="size-3.5 shrink-0" />
+        <span className="line-clamp-1">{location}</span>
+      </p>
+    </div>
+  );
+};
+
+
+
+export const SpecialtiesList = ({ specialties }: SpecialtiesListProps) => {
+  const displaySpecialties = specialties.slice(0, 3);
+  
+  return (
+    <div className="flex flex-wrap gap-2 mb-4">
+      {displaySpecialties.map((specialty) => (
+        <Badge 
+          key={specialty} 
+          variant="outline"
+          className="bg-muted/50 hover:bg-muted px-3 py-1 rounded-full font-medium text-primary text-xs"
+        >
+          {specialty}
+        </Badge>
+      ))}
+      {specialties.length > 3 && (
+        <Badge 
+          variant="outline"
+          className="bg-muted/50 px-3 py-1 rounded-full font-medium text-muted-foreground text-xs"
+        >
+          +{specialties.length - 3}
+        </Badge>
+      )}
+    </div>
+  );
+};
+
+
+export const ExperienceBadge = ({ yearsExp }: ExperienceBadgeProps) => {
+  return (
+    <div className="flex items-center gap-2 pt-4 border-border border-t">
+      <span className="font-bold text-primary text-lg">
+        {yearsExp}+
+      </span>
+      <span className="font-medium text-muted-foreground text-xs uppercase tracking-tight">
+        Years experience
+      </span>
+    </div>
+  );
+};
+
+
+
+export const BookButton = ({ practitionerId, onBook }: BookButtonProps) => {
+  return (
+    <Button
+      className="gap-2 w-full font-headline font-semibold"
+      onClick={() => onBook(practitionerId)}
+    >
+      <Calendar className="size-4" />
+      Book Appointment
+    </Button>
+  );
+};
 export default PractitionerCard;
+

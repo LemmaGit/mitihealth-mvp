@@ -18,7 +18,6 @@ const PractitionerProfile = () => {
   });
   const availability = useMemo(() => (Array.isArray(practitioner?.availability) ? practitioner.availability : []), [practitioner]);
   const selectedDay = availability[selectedDayIndex];
-  const selectedSlot = selectedDay?.slots?.[selectedSlotIndex];
 
   if (!practitioner && !isLoading) {
     return (
@@ -169,16 +168,11 @@ const PractitionerProfile = () => {
 
               <button
                 onClick={() =>
-                  navigate(`/patient/booking/${practitioner?.clerkId}`, {
-                    state: {
-                      consultationDate: selectedDay?.day,
-                      consultationTime: selectedSlot ? `${selectedSlot.start}-${selectedSlot.end}` : "",
-                    },
-                  })
+                  navigate(`/patient/booking/${practitioner?.clerkId}`)
                 }
                 className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-bold tracking-tight shadow-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2"
               >
-                Confirm Booking
+                Book consultation
                 <ArrowRight className="w-4 h-4" />
               </button>
               <div className="mt-4 text-center">

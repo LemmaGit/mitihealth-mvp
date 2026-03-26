@@ -56,7 +56,6 @@ export default function Onboarding() {
     }
   };
 
-  console.log("Onboarding");
 
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
@@ -71,7 +70,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-screen botanical-gradient flex-col">
+    <div className="flex min-h-screen overflow-y-auto! botanical-gradient flex-col">
       {/* Hero */}
       <section className="relative overflow-hidden px-4 pb-16 pt-12 text-primary-foreground lg:px-8 lg:pb-24 lg:pt-20">
         {/* Decorative leaves */}

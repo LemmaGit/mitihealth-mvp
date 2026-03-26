@@ -1,194 +1,159 @@
-import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
-import PractitionerCard from "../../components/PractitionerCard";
-import { Slider } from "../../components/ui/slider";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
+import PractitionerCard, { type PractitionerCardModel } from "../../components/PractitionerCard";
+import { SearchBar } from "../../components/SearchBar";
+import { FilterCard } from "../../components/FilterCard";
+import { FilterToggle } from "../../components/FilterToggle";
+import { Pagination } from "../../components/Pagination";
+import { EmptyState } from "../../components/EmptyState";
+import { formatSpecialization, PRACTITIONER_PLACEHOLDER_IMG, yearsPracticing } from "../../lib/practitionerDisplay";
+import { cn } from "../../lib/utils";
 
 const Index = () => {
   const { common } = useAppApi();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCondition, setSelectedCondition] = useState("All Conditions");
-  const [location, setLocation] = useState("");
-  const [priceRange, setPriceRange] = useState([200, 800]);
-  const [showFilters, setShowFilters] = useState(true);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [yearsExperience, setYearsExperience] = useState<[number, number]>([0, 50]);
+  const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 6;
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
   const { data: practitioners = [], isLoading } = useQuery({
-    queryKey: ["patient", "practitioners", selectedCondition, location, priceRange[0], priceRange[1]],
+    queryKey: ["patient", "practitioners"],
     queryFn: () =>
       common.getPractitioners({
-        condition: selectedCondition !== "All Conditions" ? selectedCondition : undefined,
-        location: location || undefined,
-        minFee: priceRange[0],
-        maxFee: priceRange[1],
-      } as any),
+        search: debouncedSearchQuery,
+      } as Record<string, string | number | undefined>),
   });
 
-  const filtered = useMemo(() => {
-    return practitioners
-      .map((p: any) => ({
-        id: p.clerkId,
-        name: p.clerkId,
-        title: p.specialization || "Practitioner",
-        specialties: p.conditionsTreated || [],
-        yearsExp: Math.max(0, new Date().getFullYear() - Number(p.practicingSinceEC || new Date().getFullYear())),
-        consultations: 0,
-        rating: 5,
-        price: p.consultationTypes?.video?.price || p.consultationTypes?.audio?.price || p.consultationTypes?.chat?.price || 0,
-        image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800",
-        verified: p.verificationStatus === "approved",
-      }))
-      .filter((p: any) => {
-      const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.specialties.some((s: string) => s.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesSearch;
-    });
-  }, [practitioners, searchQuery]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchQuery]);
 
-  const conditionOptions = useMemo(() => {
-    const all = new Set<string>();
-    (practitioners as any[]).forEach((p) =>
-      (p.conditionsTreated || []).forEach((c: string) => all.add(c)),
-    );
-    return ["All Conditions", ...Array.from(all)];
-  }, [practitioners]);
+  const filtered = useMemo(() => {
+    const rows: PractitionerCardModel[] = practitioners.map((p: Record<string, unknown>) => ({
+      id: p.clerkId as string,
+      title: formatSpecialization(p.specialization as string),
+      location: (p.location as string) || "Ethiopia",
+      specialties: (p.conditionsTreated as string[]) || [],
+      yearsExp: yearsPracticing(p.practicingSinceEC as number),
+      image: PRACTITIONER_PLACEHOLDER_IMG,
+      verified: p.verificationStatus === "approved",
+      ...p.clerkInfo!,
+    }));
+
+    const q = debouncedSearchQuery.toLowerCase().trim();
+    return rows.filter((p) => {
+      const matchesSearch = !q || (
+        p.title.toLowerCase().includes(q) ||
+        p.location.toLowerCase().includes(q) ||
+        p.specialties.some((s: string) => s.toLowerCase().includes(q)) ||
+        `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+      );
+      
+      const matchesExperience = p.yearsExp >= yearsExperience[0];
+      
+      return matchesSearch && matchesExperience;
+    });
+  }, [practitioners, debouncedSearchQuery, yearsExperience]);
+
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (yearsExperience[0] !== 0 || yearsExperience[1] !== 50) count++;
+    if (debouncedSearchQuery) count++;
+    return count;
+  }, [yearsExperience, debouncedSearchQuery]);
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setDebouncedSearchQuery("");
+    setYearsExperience([0, 50]);
+    setCurrentPage(1);
+  };
+
   const totalPages = Math.ceil(filtered.length / perPage) || 1;
   const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
 
   return (
-    
-      <>
-        <header className="mb-10">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary tracking-tight mb-2">
-            Find Your Practitioner
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Connect with verified clinical herbalists and traditional medicine experts.
-          </p>
-        </header>
+    <>
+      <header className="mb-8 md:mb-10">
+        <h1 className="font-headline font-bold text-primary text-3xl md:text-4xl lg:text-5xl tracking-tight">
+          Find Your Practitioner
+        </h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground text-base md:text-lg">
+          Connect with verified clinical herbalists and traditional medicine experts.
+        </p>
+      </header>
 
-        {/* Search + Filter Toggle */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search by name or condition..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-container-lowest pl-12 pr-4 py-3.5 rounded-xl font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-surface-container-low text-primary font-headline font-semibold text-sm hover:bg-surface-container transition-all"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
-        </div>
+      <div className="flex md:flex-row flex-col md:justify-start md:items-center gap-4 mb-6">
+        <SearchBar value={searchQuery} onChange={handleSearchChange} />
+        <FilterToggle
+          showFilters={showFilters}
+          onToggle={() => setShowFilters(!showFilters)}
+          activeFilterCount={activeFilterCount}
+        />
+      </div>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="bg-surface-container-low rounded-2xl p-6 mb-8 space-y-6">
-            <div>
-              <h3 className="font-headline font-semibold text-sm text-foreground mb-3">Location</h3>
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City or area"
-                className="w-full bg-surface-container-lowest px-4 py-3 rounded-xl text-sm"
-              />
-            </div>
+      {showFilters && (
+      <div className={cn(
+        "mb-8 transition-all duration-300 ease-in-out",
+        "md:block md:max-w-md lg:max-w-lg"
+      )}>
+        <FilterCard
+          yearsExperience={yearsExperience}
+          onYearsExperienceChange={setYearsExperience}
+          onClearFilters={clearAllFilters}
+        />
+      </div>
+      )}
 
-            <div>
-              <h3 className="font-headline font-semibold text-sm text-foreground mb-3">Condition</h3>
-              <div className="flex flex-wrap gap-2">
-                {conditionOptions.map((spec) => (
-                  <button
-                    key={spec}
-                    onClick={() => setSelectedCondition(spec)}
-                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                      selectedCondition === spec
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "bg-surface-container-lowest text-muted-foreground hover:text-primary hover:bg-surface-container"
-                    }`}
-                  >
-                    {spec}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <div className="mb-6">
+        <p className="text-muted-foreground text-sm">
+          Showing{" "}
+          <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
+          practitioner{filtered.length !== 1 ? "s" : ""}
+          {activeFilterCount > 0 && (
+            <span className="ml-2 text-xs">
+              • {activeFilterCount} active filter{activeFilterCount !== 1 ? "s" : ""}
+            </span>
+          )}
+        </p>
+      </div>
 
-            {/* Price Slider */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-headline font-semibold text-sm text-foreground">Price Range</h3>
-                <span className="text-sm font-medium text-primary">
-                  {priceRange[0]} – {priceRange[1]} ETB
-                </span>
-              </div>
-              <Slider
-                min={100}
-                max={1000}
-                step={50}
-                value={priceRange}
-                onValueChange={setPriceRange}
-                className="w-full"
-              />
-              <div className="flex justify-between mt-1">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">100 ETB</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">1000 ETB</span>
-              </div>
-            </div>
+      <div className="gap-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {isLoading && (
+          <div className="flex justify-center col-span-full py-12">
+            <div className="text-muted-foreground text-sm">Loading practitioners...</div>
           </div>
         )}
-
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-sm text-muted-foreground">
-            Showing <span className="font-bold text-foreground">{filtered.length}</span> practitioner{filtered.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-
-        {/* Practitioner List */}
-        <div className="space-y-5">
-          {isLoading && <p className="text-sm text-muted-foreground">Loading practitioners...</p>}
-          {paginated.map((p: any) => (
+        {!isLoading &&
+          paginated.map((p: PractitionerCardModel) => (
             <PractitionerCard key={p.id} practitioner={p} />
           ))}
-          {filtered.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground text-lg">No practitioners match your filters.</p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCondition("All Conditions");
-                  setLocation("");
-                  setPriceRange([200, 800]);
-                }}
-                className="mt-4 text-primary font-semibold hover:underline"
-              >
-                Clear all filters
-              </button>
-            </div>
-          )}
-        </div>
-        {filtered.length > 0 && (
-          <div className="mt-8 flex items-center justify-between">
-            <button className="text-sm" disabled={currentPage === 1} onClick={() => setCurrentPage((p: number) => p - 1)}>
-              Previous
-            </button>
-            <p className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</p>
-            <button className="text-sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p: number) => p + 1)}>
-              Next
-            </button>
-          </div>
+        {!isLoading && filtered.length === 0 && (
+          <EmptyState onClearFilters={clearAllFilters} />
         )}
-      </>
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+    </>
   );
 };
 

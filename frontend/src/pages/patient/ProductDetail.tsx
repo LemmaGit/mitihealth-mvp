@@ -4,18 +4,25 @@ import { ArrowLeft, Star, ShoppingCart, Minus, Plus, Leaf, CheckCircle } from "l
 import { useCart } from "../../contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../../components/ui/carousel";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { product: productApi } = useAppApi();
-  const [activeImage, setActiveImage] = useState(0);
   const { data: products = [] } = useQuery({
     queryKey: ["patient", "products"],
     queryFn: () => productApi.getAllProducts(),
   });
   const product = (products as any[]).find((p: any) => p._id === id);
+  console.log(product,"🤮🤮")
   const [quantity, setQuantity] = useState(1);
 
   if (!product) {
@@ -44,7 +51,7 @@ const ProductDetail = () => {
       <>
         {/* Breadcrumb */}
         <button
-          onClick={() => navigate("/marketplace")}
+          onClick={() => navigate("/patient/marketplace")}
           className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 font-medium text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -52,22 +59,31 @@ const ProductDetail = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Image */}
-          <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container">
-            <img
-              src={product.imageUrls?.[activeImage] || product.imageUrls?.[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              width={512}
-              height={512}
-            />
-          </div>
-          <div className="flex gap-2 mt-3">
-            {(product.imageUrls || []).map((img: string, i: number) => (
-              <button key={img} onClick={() => setActiveImage(i)} className={`h-16 w-16 overflow-hidden rounded-lg ${activeImage === i ? "ring-2 ring-primary" : ""}`}>
-                <img src={img} alt={product.name} className="h-full w-full object-cover" />
-              </button>
-            ))}
+          {/* Image Carousel */}
+          <div className="relative">
+            <Carousel opts={{ loop: true }} className="w-full">
+              <CarouselContent>
+                {(product.imageUrls || [product.imageUrls?.[0] || ""]).map((img: string, i: number) => (
+                  <CarouselItem key={i}>
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container">
+                      <img
+                        src={img}
+                        alt={`${product.name} - view ${i + 1}`}
+                        className="w-full h-full object-cover"
+                        width={512}
+                        height={512}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {product.imageUrls?.length > 1 && (
+                <>
+                  <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 shadow-md bg-white/80 hover:bg-white border-0 text-primary" />
+                  <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 shadow-md bg-white/80 hover:bg-white border-0 text-primary" />
+                </>
+              )}
+            </Carousel>
           </div>
 
           {/* Details */}
@@ -81,22 +97,6 @@ const ProductDetail = () => {
               </h1>
               <p className="text-muted-foreground mt-1">{product.subtitle}</p>
             </div>
-
-            {/* Rating */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${i < 5 ? "text-secondary fill-secondary" : "text-surface-container"}`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm font-semibold text-foreground">5.0</span>
-              <span className="text-sm text-muted-foreground">(verified)</span>
-            </div>
-
-            {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold text-primary">{product.price} ETB</span>
               {product.originalPrice && (
@@ -115,9 +115,21 @@ const ProductDetail = () => {
 
             {/* Benefits */}
             <div>
-              <h3 className="font-headline font-semibold text-foreground mb-3">Key Benefits</h3>
+              <h3 className="font-headline font-semibold text-foreground mb-3">Ingredients</h3>
               <ul className="space-y-2">
                 {(product.ingredients || []).map((b: string) => (
+                  <li key={b} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Leaf className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-headline font-semibold text-foreground mb-3">Usage Instructions</h3>
+              <ul className="space-y-2">
+                {(product.usageInstructions || []).map((b: string) => (
                   <li key={b} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <Leaf className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     {b}
@@ -132,19 +144,10 @@ const ProductDetail = () => {
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Origin</p>
                 <p className="text-sm font-semibold text-foreground">Ethiopia</p>
               </div>
-              <div className="bg-surface-container-low rounded-xl p-4">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Weight</p>
-                <p className="text-sm font-semibold text-foreground">{product.inventory || 0} in stock</p>
-              </div>
+  
             </div>
 
-            {/* Usage */}
-            <div className="bg-surface-container-low rounded-xl p-5">
-              <h4 className="font-headline font-semibold text-foreground text-sm mb-2">How to Use</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">{(product.usageInstructions || []).join(", ") || "Refer to packaging instructions."}</p>
-            </div>
-
-            {/* Quantity + Add to Cart */}
+          
             <div className="flex items-center gap-4 pt-2">
               <div className="flex items-center gap-3 bg-surface-container-low rounded-xl p-1">
                 <button
@@ -155,7 +158,7 @@ const ProductDetail = () => {
                 </button>
                 <span className="w-8 text-center font-bold text-foreground">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(product.inventory, quantity + 1))}
                   className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container transition-all text-foreground"
                 >
                   <Plus className="w-4 h-4" />

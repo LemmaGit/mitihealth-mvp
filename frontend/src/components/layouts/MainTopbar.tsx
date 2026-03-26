@@ -1,6 +1,6 @@
 import { UserButton } from "@clerk/react";
-import { Bell, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bell, Menu, X } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
 import { links } from "../../helper/routeLinks";
@@ -30,6 +30,22 @@ function MainTopbar() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications", "mine"] }),
   });
 
+  const notificationMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close notification menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+
   useEffect(() => {
     if (!socket) return;
     const onNew = () => {
@@ -43,31 +59,64 @@ function MainTopbar() {
 
   return (
     <>
-      <header className="fixed top-0 lg:top-4 right-0 lg:right-4 left-0 lg:left-auto z-50">
-        <div className="flex h-16 items-center justify-between gap-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-lg px-4 lg:px-6">
+      <header className="top-0 lg:top-4 right-0 lg:right-4 left-0 lg:left-auto z-50 fixed">
+        <div className="flex justify-between items-center gap-3 bg-white/80 dark:bg-gray-900/80 shadow-lg backdrop-blur-xl px-4 lg:px-6 border border-white/20 dark:border-gray-700/30 rounded-2xl h-16">
           
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden relative rounded-full p-2 text-muted-foreground hover:bg-white/20 dark:hover:bg-gray-800/50 transition-colors"
+            className="lg:hidden relative hover:bg-white/20 dark:hover:bg-gray-800/50 p-2 rounded-full text-muted-foreground transition-colors"
             aria-label="Toggle menu"
           >
             <Menu size={20} />
           </button>
           
+          {/* Mobile Notifications - Right Side */}
+         
+          
+          {/* Desktop Notifications - Left Side */}
           <button
-            className="relative rounded-full p-2 text-muted-foreground hover:bg-white/20 dark:hover:bg-gray-800/50 transition-colors"
-            onClick={() => setIsNotificationsOpen((s) => !s)}
+            className="hidden relative lg:flex hover:bg-white/20 dark:hover:bg-gray-800/50 p-2 rounded-full text-muted-foreground transition-colors"
+            onClick={() => {
+              setIsNotificationsOpen((s) => !s);
+              // Auto-mark all notifications as read when opening
+              (notifications as any[]).forEach((n: any) => {
+                if (!n.isRead) {
+                  markReadMutation.mutate(n._id);
+                }
+              });
+            }}
           >
             <Bell size={20} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] text-white">
+              <span className="-top-1 -right-1 absolute flex justify-center items-center bg-destructive px-1 rounded-full min-w-4 h-4 text-[10px] text-white">
                 {unreadCount}
               </span>
             )}
           </button>
-          
-          <div className="flex items-center sm:flex">
+
+          <div className="flex items-center gap-2">
+           <button
+            className="lg:hidden relative hover:bg-white/20 dark:hover:bg-gray-800/50 p-2 rounded-full text-muted-foreground transition-colors"
+            onClick={() => {
+              setIsNotificationsOpen((s) => !s);
+              // Auto-mark all notifications as read when opening
+              (notifications as any[]).forEach((n: any) => {
+                if (!n.isRead) {
+                  markReadMutation.mutate(n._id);
+                }
+              });
+            }}
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="-top-1 -right-1 absolute flex justify-center items-center bg-destructive px-1 rounded-full min-w-4 h-4 text-[10px] text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          <div className="flex sm:flex items-center">
             <UserButton 
               appearance={{
                 elements: {
@@ -77,24 +126,25 @@ function MainTopbar() {
               }} 
             />
           </div>
+          </div>
         </div>
       </header>
 
       {isMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            className="lg:hidden z-40 fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsMenuOpen(false)}
           />
           
-          <div className="fixed top-20 left-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl z-40 lg:hidden animate-in slide-in-from-top-2 fade-in duration-200">
-            <div className="p-4 space-y-2">
+          <div className="lg:hidden top-20 right-4 left-4 z-40 fixed bg-white/90 dark:bg-gray-900/90 slide-in-from-top-2 shadow-xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl animate-in duration-200 fade-in">
+            <div className="space-y-2 p-4">
               {sidebarItems.map((item) => (
                 <NavLink
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="w-full flex items-center gap-3 rounded-xl p-3 text-muted-foreground hover:bg-white/20 dark:hover:bg-gray-800/50 transition-colors"
+                  className="flex items-center gap-3 hover:bg-white/20 dark:hover:bg-gray-800/50 p-3 rounded-xl w-full text-muted-foreground transition-colors"
                 >
                   <item.icon size={18} />
                   <span>{item.label}</span>
@@ -105,14 +155,22 @@ function MainTopbar() {
         </>
       )}
       {isNotificationsOpen && (
-        <div className="fixed right-4 top-20 z-50 w-80 rounded-xl border border-border/20 bg-card p-3 shadow-xl">
-          <h3 className="mb-2 text-sm font-semibold">Notifications</h3>
-          <div className="max-h-80 space-y-2 overflow-auto">
+        <div ref={notificationMenuRef} className="top-20 right-4 z-50 fixed bg-card shadow-xl p-3 border border-border/20 rounded-xl w-80">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-semibold text-sm">Notifications</h3>
+            <button
+              onClick={() => setIsNotificationsOpen(false)}
+              className="hover:bg-muted p-1 rounded-lg text-muted-foreground"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="space-y-2 max-h-80 overflow-auto">
             {(notifications as any[]).map((n: any) => (
-              <div key={n._id} className="rounded-lg border border-border/20 p-2">
-                <p className="text-xs font-semibold">{n.title}</p>
-                <p className="text-xs text-muted-foreground">{n.message}</p>
-                <div className="mt-2 flex gap-2">
+              <div key={n._id} className="p-2 border border-border/20 rounded-lg">
+                <p className="font-semibold text-xs">{n.title}</p>
+                <p className="text-muted-foreground text-xs">{n.message}</p>
+                <div className="flex gap-2 mt-2">
                   {!n.isRead && (
                     <button className="text-[11px] text-primary" onClick={() => markReadMutation.mutate(n._id)}>
                       Mark read
@@ -125,7 +183,7 @@ function MainTopbar() {
               </div>
             ))}
             {(notifications as any[]).length === 0 && (
-              <p className="text-xs text-muted-foreground">No notifications yet.</p>
+              <p className="text-muted-foreground text-xs">No notifications yet.</p>
             )}
           </div>
         </div>

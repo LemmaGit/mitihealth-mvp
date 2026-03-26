@@ -1,5 +1,5 @@
 import { AlertTriangle } from "lucide-react";
-import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
+import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 import { AppError } from "../lib/errors";
 
 export function AppErrorFallback({
@@ -9,7 +9,6 @@ export function AppErrorFallback({
   error: unknown;
   resetErrorBoundary: () => void;
 }) {
-  const navigate = useNavigate();
   const resolved = error instanceof AppError ? error : null;
   const message = resolved?.message || "Something unexpected happened.";
 
@@ -33,7 +32,11 @@ export function AppErrorFallback({
           </button>
           <button
             className="rounded-lg border border-border/50 px-4 py-2 text-sm"
-            onClick={() => navigate("/")}
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.location.assign("/");
+              }
+            }}
           >
             Go home
           </button>

@@ -8,7 +8,7 @@ const sidebarItems = [
   { label: "Appointments", icon: Calendar, href: "/supplier/appointments" },
   { label: "Inventory", icon: ClipboardList, href: "/supplier/inventory" },
   { label: "Analytics", icon: BarChart3, href: "/supplier/analytics" },
-  { label: "Messages", icon: MessageSquare, href: "/supplier/messages" },
+  { label: "Messages", icon: MessageSquare, href: "/messages" },
 ];
 
 export function SupplierSidebar() {

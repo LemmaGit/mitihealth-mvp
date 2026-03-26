@@ -4,17 +4,16 @@ import useAuth from "./hooks/useAuth";
 import { LoginRoute, SignupRoute } from "./routes/Auth.routes";
 import { PropagateLoader } from "react-spinners";
 import Loader from "./components/Loader";
-const Index = lazy(() => import("./pages/Index"));
+import NotFound from "./pages/NotFound";
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const UserRoutes = lazy(() => import("./routes/User.routes"));
 
 const App = () => {
   const { user, isLoaded, isSignedIn } = useAuth();
-
   const userRole = user?.unsafeMetadata?.role;
   const getRootRedirect = () => {
     if (!isLoaded) return <Loader isFullPage={true}><PropagateLoader color="#004c22" /></Loader>
-    if (!isSignedIn) return <Index />; 
+    if (!isSignedIn) return <Navigate to="/login" replace />; 
     if (!userRole) return <Navigate to="/onboarding" replace />;
     
     return <Navigate to={`/${userRole as string}`} replace />;
@@ -34,6 +33,7 @@ const App = () => {
           )
         } />
         <Route path="/*" element={<UserRoutes />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

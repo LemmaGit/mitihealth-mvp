@@ -7,6 +7,7 @@ const ProductVerification = lazy(() => import("../pages/admin/ProductVerificatio
 function AdminRoutes() {
   return (
     <Routes>
+      <Route path="users" element={<UserManagement />} />
       <Route index element={<UserManagement />} />
       <Route path="practitioner-verification" element={<PractitionerVerification />} />
       <Route path="product-verification" element={<ProductVerification />} />

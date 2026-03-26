@@ -45,7 +45,12 @@ export const apiClient = async (
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = {};
+    }
     const message = errorData.message || "An error occurred while fetching data.";
 
     if (response.status === 401 || response.status === 403) {
@@ -60,5 +65,10 @@ export const apiClient = async (
     throw new ApiRequestError(message, response.status, errorData);
   }
 
-  return response.json();
+  // Handle empty responses or non-JSON responses
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  return response.text();
 };

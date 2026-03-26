@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useAppApi } from "../../hooks/useAppApi";
 import { useQuery } from "@tanstack/react-query";
+import { useClerk } from "@clerk/react";
 
 const Dashboard = () => {
+  // temporary
+  const {signOut} = useClerk()
   const navigate = useNavigate();
   const { patient } = useAppApi();
   const { data: consultations = [] } = useQuery({
@@ -18,7 +21,7 @@ const Dashboard = () => {
     <div className="space-y-8">
       <header>
         <h1 className="font-headline text-3xl font-bold text-primary tracking-tight mb-1">Patient Dashboard</h1>
-        <p className="text-muted-foreground">Recent consultations and orders.</p>
+        <p className="text-muted-foreground" onClick={()=>signOut}>Recent consultations and orders.</p>
       </header>
 
       <div className="grid gap-3">

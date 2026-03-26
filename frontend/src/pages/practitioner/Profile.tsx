@@ -20,33 +20,32 @@ export default function PractitionerProfile() {
   const queryClient = useQueryClient();
   const { practitioner } = useAppApi();
   const { authUser: user } = useAuthStore();
-  
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageModified, setImageModified] = useState(false);
 
-  const methods = useForm<ProfileFormValues>({
-    resolver: zodResolver(practitionerProfileSchema) as any,
-    defaultValues: defaultValuesObj,
+ 
+
+  const { data: existing } = useQuery({
+    queryKey: ["practitioner", "self", user?.id],
+    queryFn: () => practitioner.getPractitionerData(user?.id!),
+    enabled: !!user?.id,
   });
 
-  const {
+   const methods = useForm<ProfileFormValues>({
+    resolver: zodResolver(practitionerProfileSchema) as any,
+    defaultValues: existing || defaultValuesObj,
+  });
+   const {
     handleSubmit,
     reset,
     formState: { isDirty },
   } = methods;
 
   const isFormModified = isDirty || imageModified;
-  const { data: existing } = useQuery({
-    queryKey: ["practitioner", "self", user?.id],
-    queryFn: () => practitioner.getPractitioner(user?.id!),
-    enabled: !!user?.id,
-  });
 
-  useEffect(() => {
-    if (existing) {
-      reset(existing);
-    }
-  }, [existing, reset]);
+ 
+  const isVerifiedOrNotExists = existing?.verificationStatus === "approved"|| !existing;
+  const isPending = existing?.verificationStatus === "pending" ;
 
   const mutation = useMutation({
     mutationFn: (data: ProfileFormValues) => practitioner.updateProfile(data),
@@ -81,54 +80,73 @@ export default function PractitionerProfile() {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-5xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">
-              Edit Practitioner Profile
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <h1 className="font-display font-bold text-foreground text-3xl">
+                Edit Practitioner Profile
+              </h1>
+              {isPending && (
+                <span className="bg-yellow-100 px-3 py-1 rounded-full font-medium text-yellow-800 text-xs">
+                  Under Verification
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-muted-foreground text-sm">
               Manage your professional identity and clinical availability.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {existing?.verificationStatus === "pending" && (
-              <p className="text-xs rounded-lg bg-secondary/20 text-secondary px-3 py-2">Waiting for verification</p>
+            {isPending && (
+              <p className="bg-secondary/20 px-3 py-2 rounded-lg text-secondary text-xs">Waiting for verification</p>
             )}
-            <Button
-              type="button"
-              variant="ghost"
-              className="font-semibold"
-              onClick={() => { reset(); setImageModified(false); setProfileImage(null); }}
-              disabled={!isFormModified || mutation.isPending}
-            >
-              Discard Changes
-            </Button>
-            <Button
-              type="submit"
-              className="botanical-gradient text-primary-foreground flex items-center"
-              disabled={!isFormModified || mutation.isPending}
-            >
-              {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Save Profile
-            </Button>
+            {isVerifiedOrNotExists && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="font-semibold"
+                  onClick={() => { reset(); setImageModified(false); setProfileImage(null); }}
+                  disabled={!isFormModified || mutation.isPending}
+                >
+                  Discard Changes
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex items-center text-primary-foreground botanical-gradient"
+                  disabled={!isFormModified || mutation.isPending}
+                >
+                  {mutation.isPending ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : null}
+                  Save Profile
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
         {/* Mobile: Sidebar on top */}
         <div className="lg:hidden mb-8">
-          <SidebarContent profileImage={profileImage} onImageChange={handleImageChange} />
+          <SidebarContent 
+            profileImage={profileImage} 
+            onImageChange={handleImageChange}
+            disabled={isPending}
+          />
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+        <div className="gap-8 grid lg:grid-cols-[1fr_300px]">
           {/* Main Form */}
           <div className="space-y-8">
-            <ProfessionalIdentity />
-            <WeeklyAvailability />
+            <ProfessionalIdentity disabled={isPending} />
+            <WeeklyAvailability disabled={isPending} />
           </div>
 
           {/* Desktop: Right Sidebar */}
           <div className="hidden lg:block">
-            <SidebarContent profileImage={profileImage} onImageChange={handleImageChange} />
+            <SidebarContent 
+              profileImage={profileImage} 
+              onImageChange={handleImageChange}
+              disabled={isPending}
+            />
           </div>
         </div>
       </form>

@@ -41,6 +41,7 @@ app.use(protect)
 
 
 // All API routes
+app.get("/", (req, res) => res.json({ message: "MitiHealth Backend OK" }));
 app.use("/api/practitioners", practitionerRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/products", productRouter);

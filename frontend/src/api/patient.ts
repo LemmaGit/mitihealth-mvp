@@ -12,4 +12,16 @@ export const patientApi = (getToken: () => Promise<string | null>) => ({
     
   getMyOrders: () => 
     apiClient("/orders/me", { method: "GET" }, getToken),
+    
+  cancelOrder: (orderId: string) => 
+    apiClient(`/orders/${orderId}/cancel`, { method: "PUT" }, getToken),
+    
+  startConsultation: (consultationId: string) => 
+    apiClient(`/consultations/${consultationId}/start`, { method: "POST" }, getToken),
+    
+  completeConsultation: (consultationId: string) => 
+    apiClient(`/consultations/${consultationId}/complete`, { method: "POST" }, getToken),
+    
+  getConsultationStatus: (consultationId: string) => 
+    apiClient(`/consultations/${consultationId}/status`, { method: "GET" }, getToken),
 });
