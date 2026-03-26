@@ -5,6 +5,8 @@ import httpStatus from "http-status";
 import { clerkMiddleware } from "@clerk/express";
 import { app, server } from "./lib/socket.ts";
 import { connectDb } from "./lib/db.ts";
+import cron from "node-cron";
+import { checkAndCreateConsultationThreads } from "./services/consultation.service.ts";
 
 // Routers
 import webhookRouter from "./routes/webhook.route.ts";
@@ -15,6 +17,7 @@ import consultationRouter from "./routes/consultation.route.ts";
 import orderRouter from "./routes/order.route.ts";
 import messageRouter from "./routes/message.route.ts";
 import notificationRouter from "./routes/notification.route.ts";
+import userRouter from "./routes/user.route.ts";
 
 import ApiError from "./utils/ApiError.ts";
 import { errorConverter, errorHandler } from "./middlewares/error.ts";
@@ -45,6 +48,7 @@ app.use("/api/consultations", consultationRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/users", userRouter);
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, "Not found"));
 });
@@ -54,6 +58,18 @@ app.use(errorHandler);
 server.listen(PORT, async () => {
   await connectDb();
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
+  
+  // Schedule consultation thread creation check every minute
+  cron.schedule('* * * * *', async () => {
+    try {
+      await checkAndCreateConsultationThreads();
+      console.log('📅 Checked for starting consultations');
+    } catch (error) {
+      console.error('❌ Error checking consultations:', error);
+    }
+  });
+  
+  console.log('⏰ Consultation scheduler started');
 });
 
 const exitHandler = () => {

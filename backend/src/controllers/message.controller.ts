@@ -1,19 +1,57 @@
 import status from "http-status";
 import { Message } from "../models/message.model.ts";
-import catchAsync from "../utils/catchAsync.ts";
 import { User } from "../models/User.model.ts";
+import { HiddenConversation } from "../models/hiddenConversation.model.ts";
+import { Conversation } from "../models/conversation.model.ts";
 import { sendMessageService } from "../services/message.service.ts";
-
+import catchAsync from "../utils/catchAsync.ts";
+import {clerkClient} from "@clerk/express"
+import { getClerkUsers } from "../utils/helpers.ts";
 
 export const getUsersForSidebar = catchAsync(async (req, res) => {
-     //@ts-ignore  
-     const loggedInUserId = req.userId;
-    const filteredUsers = await User.find({
-      clerkId: { $ne: loggedInUserId },
-    });
-    res.status(status.OK).json(filteredUsers);
+  //@ts-ignore  
+  const loggedInUserId = req.userId;
 
- });
+  // Get conversations where user is a participant
+  const conversations = await Conversation.find({
+    "participants.userId": loggedInUserId
+  })
+  .sort({ updatedAt: -1 });
+
+  // Extract unique user IDs from conversations (excluding self)
+  const conversationUserIds = [...new Set(
+    conversations.flatMap(conv => 
+      conv.participants
+        .filter(p => p.userId !== loggedInUserId)
+        .map(p => p.userId)
+    )
+  )];
+
+  // Get users you've had conversations with
+  const conversationUsers = await User.find({
+    clerkId: { $in: conversationUserIds }
+  });
+
+  // Get admin users (excluding self)
+  const adminUsers = await User.find({
+    clerkId: { $ne: loggedInUserId },
+    role: "admin",
+  });
+
+  // Combine and deduplicate users
+  const allUserIds = [
+    ...adminUsers.map(u => u.clerkId),
+    ...conversationUserIds
+  ];
+
+  const uniqueUsers = await User.find({
+    clerkId: { $in: allUserIds }
+  });
+
+  const allUsers = await getClerkUsers(uniqueUsers);
+
+  res.status(status.OK).json(allUsers);
+});
 
 export const getMessages = catchAsync(async (req, res) => {
   
@@ -37,4 +75,17 @@ export const sendMessage = catchAsync(async (req, res) => {
     const senderId = req.userId;  
     const newMessage = await sendMessageService(senderId,receiverId as string,text,req.file);
     res.status(status.CREATED).json(newMessage);
+});
+
+export const hideConversation = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  //@ts-ignore  
+  const loggedInUserId = req.userId;
+    
+  // Remove conversation from both users' conversation lists
+  await Conversation.deleteMany({
+    "participants.userId": { $in: [loggedInUserId, userId] }
+  });
+    
+  res.status(status.OK).json({ message: "Conversation hidden successfully" });
 });

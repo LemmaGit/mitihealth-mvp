@@ -10,8 +10,16 @@ const ConsultationSchema = new mongoose.Schema({
     enum: ["chat", "audio", "video"],
     required: true,
   },
-  status: { type: String, default: "booked" },
+  duration: { type: Number, required: true }, // in minutes
+  status: { 
+    type: String, 
+    enum: ["booked", "active", "completed"], 
+    default: "booked" 
+  },
   jitsiRoom: String, // for video/audio calls
+  sessionStartTime: { type: Date }, // when session actually starts
+  sessionEndTime: { type: Date }, // when session ends
+  firstParticipantJoined: { type: Date }, // track when first person joins
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -1,3 +1,4 @@
+import { clerkClient} from "@clerk/express";
 import { Practitioner } from "../models/Practitioner.model.ts";
 import { createNotificationsForRole } from "./notification.service.ts";
 
@@ -17,27 +18,86 @@ export const findVerifiedPractitioners = async (filters: {
   minFee?: unknown;
   maxFee?: unknown;
 }) => {
-  const query: any = { verificationStatus: "approved" };
+  const query: Record<string, unknown> = { verificationStatus: "approved" };
   const { condition, location, minFee, maxFee } = filters;
 
   if (condition) query.conditionsTreated = { $in: [condition] };
   if (location) query.location = { $regex: String(location), $options: "i" };
-  if (minFee) query["consultationTypes.video.price"] = { $gte: Number(minFee) };
-  if (maxFee)
-    query["consultationTypes.video.price"] = {
-      ...(query["consultationTypes.video.price"] || {}),
-      $lte: Number(maxFee),
-    };
 
-  return Practitioner.find(query).select(
+  const min = minFee != null && String(minFee) !== "" ? Number(minFee) : null;
+  const max = maxFee != null && String(maxFee) !== "" ? Number(maxFee) : null;
+
+  if (min != null || max != null) {
+    const low = min != null && !Number.isNaN(min) ? min : 0;
+    const high =
+      max != null && !Number.isNaN(max) ? max : Number.MAX_SAFE_INTEGER;
+    const priceBounds = { $gte: low, $lte: high };
+    query.$or = [
+      {
+        "consultationTypes.chat.enabled": true,
+        "consultationTypes.chat.price": priceBounds,
+      },
+      {
+        "consultationTypes.audio.enabled": true,
+        "consultationTypes.audio.price": priceBounds,
+      },
+      {
+        "consultationTypes.video.enabled": true,
+        "consultationTypes.video.price": priceBounds,
+      },
+    ];
+  }
+
+  // also fetch thir infor from clerk and sent that too
+
+  const practitioners = await Practitioner.find(query).select(
     "clerkId specialization practicingSinceEC location consultationTypes conditionsTreated availability verificationStatus createdAt",
   );
+  const practitionersWithClerk = await Promise.all(practitioners.map(async (p) => {
+    const user = await clerkClient.users.getUser(p.clerkId);
+    return {
+      ...p.toObject(),
+      clerkInfo: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailAddresses[0]?.emailAddress,
+        profileImage: user.imageUrl,
+      },
+    };
+  })
+);
+
+return practitionersWithClerk;
 };
 
 export const findPractitionerById = async (id: string) => {
-  return Practitioner.findOne({
+  const user = await clerkClient.users.getUser(id);
+  const practitioner = await Practitioner.findOne({
   clerkId: id,
-});;
+});
+
+return {...practitioner, imageUrl: user.imageUrl,fullName:user.fullName};
+};
+
+export const getPractitionerData = async (id: string) => {
+  const user = await clerkClient.users.getUser(id);
+  const practitioner = await Practitioner.findOne({
+    clerkId: id,
+  });
+
+  return {
+    clerkId: practitioner?.clerkId,
+    specialization: practitioner?.specialization,
+    practicingSinceEC: practitioner?.practicingSinceEC,
+    location: practitioner?.location,
+    consultationTypes: practitioner?.consultationTypes,
+    conditionsTreated: practitioner?.conditionsTreated || [],
+    availability: practitioner?.availability || [],
+    bio: practitioner?.bio || "",
+    verificationStatus: practitioner?.verificationStatus,
+    imageUrl: user.imageUrl,
+    fullName: user.fullName,
+  };
 };
 
 export const upsertPractitionerProfile = async (userId: string, data: any) => {

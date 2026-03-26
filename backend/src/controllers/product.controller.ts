@@ -42,7 +42,7 @@ export const updateProductController = catchAsync(async (req, res, next) => {
 
 // ✅
 export const getAllProducts = catchAsync(async (req, res) => {
-  const products = await Product.find({ verificationStatus: "approved" });
+  const products = await Product.find({});
   res.status(status.OK).json(products);
 });
 

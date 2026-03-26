@@ -2,6 +2,7 @@
 import streamifier from "streamifier";
 import cloudinary from "../lib/cloudinary.ts";
 import type { Request } from "express";
+import { clerkClient } from "@clerk/express";
 
 
 export const uploadImage = (req: Request, folder = "herbs") =>
@@ -18,4 +19,20 @@ export const uploadImage = (req: Request, folder = "herbs") =>
   });
 
 
+export async function getClerkUsers(users) {
+  const usersWithClerkData = await Promise.all(
+    users.map(async (user) => {
+      const clerkUser = await clerkClient.users.getUser(user.clerkId);
 
+      return {
+        ...user.toObject(),
+        imageUrl: clerkUser.imageUrl,
+        email: clerkUser.emailAddresses[0]?.emailAddress,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+      };
+    })
+  );
+
+  return usersWithClerkData;
+}

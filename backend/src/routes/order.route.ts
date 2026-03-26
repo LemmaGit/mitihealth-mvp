@@ -4,6 +4,7 @@ import {
   createOrder,
   getMyOrder,
   getMySupplierOrders,
+  getOrderDetails,
   updateOrderStatusForSupplierHandler,
 } from "../controllers/order.controller.ts";
 import { validate } from "../middlewares/validate.ts";
@@ -30,6 +31,13 @@ router.get(
   
   protectRole(["supplier"]),
   getMySupplierOrders,
+);
+
+// Get order details
+router.get(
+  "/:orderId",
+  
+  getOrderDetails,
 );
 
 // Supplier: Update order status

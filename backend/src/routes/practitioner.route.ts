@@ -3,6 +3,7 @@ import {
   adminVerification,
   getAllVerifiedPractitioners,
   getPractitioner,
+  getPractitionerData,
   updateAvailabilityAndFee,
   updatePractitionerProfile,
 } from "../controllers/practitioner.controller.ts";
@@ -26,6 +27,7 @@ router.post(
 );
 
 router.get("/:id", getPractitioner);
+router.get("/data/:id", getPractitionerData);
 
 router.patch(
   "/:id/verify",

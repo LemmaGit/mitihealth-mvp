@@ -5,6 +5,7 @@ import {
   createOrderForPatient,
   getOrdersForPatient,
   getSupplierOrders,
+  getOrderById,
   updateOrderStatusForSupplier,
 } from "../services/order.service.ts";
 
@@ -36,6 +37,17 @@ export const getMySupplierOrders = catchAsync(async (req: any, res) => {
 
   const orders = await getSupplierOrders(userId);
   res.json(orders);
+});
+
+export const getOrderDetails = catchAsync(async (req: any, res) => {
+  const { orderId } = req.params;
+  
+  const order = await getOrderById(orderId);
+  if (!order) {
+    throw new ApiError(status.NOT_FOUND, "Order not found");
+  }
+  
+  res.status(status.OK).json(order);
 });
 
 export const updateOrderStatusForSupplierHandler = catchAsync(async (req: any, res) => {

@@ -8,6 +8,7 @@ import {
   updatePractitionerVerification,
   upsertPractitionerProfile,
 } from "../services/practitioner.service.ts";
+import { Practitioner } from "../models/Practitioner.model.ts";
 
 export const getAllVerifiedPractitioners = catchAsync(async (req, res) => {
   const practitioners = await findVerifiedPractitioners(req.query);
@@ -16,6 +17,11 @@ export const getAllVerifiedPractitioners = catchAsync(async (req, res) => {
 
 export const getPractitioner = catchAsync(async (req, res) => {
   const practitioner = await findPractitionerById(req.params.id as string);
+  res.status(status.OK).json(practitioner);
+});
+
+export const getPractitionerData = catchAsync(async (req, res) => {
+  const practitioner = await Practitioner.findOne({ clerkId: req.params.id as string });
   res.status(status.OK).json(practitioner);
 });
 

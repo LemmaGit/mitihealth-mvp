@@ -58,3 +58,9 @@ export const updateOrderStatusForSupplier = async (
   return order;
 };
 
+export const getOrderById = async (orderId: string) => {
+  return Order.findById(orderId)
+    .populate("productId", "name price imageUrls")
+    .populate("patientId", "name email");
+};
+
