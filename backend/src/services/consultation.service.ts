@@ -37,7 +37,9 @@ export const createConsultationForPatient = async (patientId: string, data: any)
   });
 
   // Emit WebSocket event for real-time notification to practitioner
-  const patient = await User.findById(patientId);
+  const patient = await User.findOne({ 
+    clerkId: patientId 
+  });
   io.emit("consultation:new", {
     consultationId: consultation._id,
     practitionerId: data.practitionerId,

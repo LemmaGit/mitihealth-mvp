@@ -37,6 +37,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ): void => {
+  console.log(err)
   let { statusCode, message } = err;
 
   if (process.env.NODE_ENV === "production" && !err.isOperational) {

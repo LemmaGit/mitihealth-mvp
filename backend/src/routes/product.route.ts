@@ -3,9 +3,10 @@ import { Router } from "express";
 import {
   createProductController,
   updateProductController,
-  getAllProducts,
   verifyProduct,
   getSupplierProductsAndStats,
+  getAllVerifiedProducts,
+  getAllProducts,
 } from "../controllers/product.controller.ts";
 import { validate } from "../middlewares/validate.ts";
 import {
@@ -31,6 +32,7 @@ router.post(
 
 // Get all approved products (marketplace)
 router.get("/", getAllProducts);
+router.get("/verified", getAllVerifiedProducts);
 router.get("/:id",protectRole(["supplier"]), getSupplierProductsAndStats);
 
 // Admin verify product

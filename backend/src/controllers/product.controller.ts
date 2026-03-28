@@ -46,6 +46,11 @@ export const getAllProducts = catchAsync(async (req, res) => {
   res.status(status.OK).json(products);
 });
 
+export const getAllVerifiedProducts = catchAsync(async (req, res) => {
+  const products = await Product.find({ verificationStatus: "approved" });
+  res.status(status.OK).json(products);
+});
+
 export const getSupplierProductsAndStats = catchAsync(async (req, res) => {
   const {id:supplierId} = req.params;
   const data = await getProductsOfSupplier(supplierId as string)
