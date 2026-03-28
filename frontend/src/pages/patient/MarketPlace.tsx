@@ -16,7 +16,7 @@ const Marketplace = () => {
   const perPage = 9;
   const { data = [], isLoading } = useQuery({
     queryKey: ["patient", "products"],
-    queryFn: () => product.getAllProducts(),
+    queryFn: () => product.getAllVerifiedProducts(),
   });
   // const productCategories = useMemo(
   //   () => ["All", ...Array.from(new Set((data as any[]).map((p: any) => (p.ingredients?.[0] || "General"))))],
@@ -46,7 +46,7 @@ const Marketplace = () => {
       
       <>
         <header className="mb-10">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary tracking-tight mb-2">
+          <h1 className="mb-2 font-headline font-bold text-primary text-4xl md:text-5xl tracking-tight">
             Botanical Marketplace
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -56,13 +56,13 @@ const Marketplace = () => {
 
         {/* Search */}
         <div className="relative mb-8 max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="top-1/2 left-4 absolute w-5 h-5 text-muted-foreground -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full border border-border bg-surface-container-lowest pl-12 pr-4 py-3.5 rounded-xl font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
+            className="bg-surface-container-lowest py-3.5 pr-4 pl-12 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 w-full font-body placeholder:text-muted-foreground text-sm transition-all"
           />
         </div>
 
@@ -84,21 +84,21 @@ const Marketplace = () => {
         </div> */}
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading && <p className="text-sm text-muted-foreground">Loading products...</p>}
+        <div className="gap-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading && <p className="text-muted-foreground text-sm">Loading products...</p>}
           {paginated.map((product: any) => (<ProductCard key={product.id} product={product} navigate={() => navigate(`${product.id}`)} addProduct={()=>addItem(product as any)} />
           ))}
         </div>
 
         {filtered.length === 0 && (
-          <div className="text-center py-16">
+          <div className="py-16 text-center">
             <p className="text-muted-foreground text-lg">No products found.</p>
           </div>
         )}
         {filtered.length > 0 && (
-          <div className="col-span-full mt-6 flex items-center justify-between">
+          <div className="flex justify-between items-center col-span-full mt-6">
             <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="text-sm">Previous</button>
-            <p className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</p>
+            <p className="text-muted-foreground text-sm">Page {currentPage} of {totalPages}</p>
             <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="text-sm">Next</button>
           </div>
         )}

@@ -3,7 +3,10 @@ import { apiClient } from "./client";
 export const productApi = (getToken: () => Promise<string | null>) => ({
   getAllProducts: () => 
     apiClient("/products", { method: "GET" }, getToken),
-    
+  
+  getAllVerifiedProducts: () => 
+    apiClient("/products/verified", { method: "GET" }, getToken),
+
   createProduct: (data: FormData) => 
     apiClient("/products", { method: "POST", body: data }, getToken),
     

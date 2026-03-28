@@ -76,7 +76,6 @@ function useRoomSession() {
     enabled: !!roomId,
     refetchInterval: roomId ? 30000 : false, // Poll every 30 seconds for active sessions
   });
-
   // Get the consultation details to find the other participant
   const { data: consultationDetails } = useQuery({
     queryKey: ["consultation", "details", roomId],
@@ -155,6 +154,9 @@ function formatMessageTime(iso?: string) {
   }
 }
 
+
+//TODO: For chat message the send button becomes disabled for room message
+//TODO: also after the session is over the patient chat is deleted from the practitioner but the patractitioner stays with the patient delete from the patient too
 const MessagesPage = () => {
   const receiverId = useReceiverId();
   const { common } = useAppApi();

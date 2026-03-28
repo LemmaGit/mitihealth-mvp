@@ -4,16 +4,16 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { differenceInMinutes } from "date-fns";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import { MessageCircle, Phone, Video, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
-import { PRACTITIONER_PLACEHOLDER_IMG, formatSpecialization } from "../../lib/practitionerDisplay";
+import { PRACTITIONER_PLACEHOLDER_IMG } from "../../lib/practitionerDisplay";
 import { cn, getInitials, getSessionDate, getTimeText } from "../../lib/utils";
 
-const TYPE_ICONS: Record<string, any> = {
-  chat: MessageCircle,
-  audio: Phone,
-  video: Video,
-};
+// const TYPE_ICONS: Record<string, any> = {
+//   chat: MessageCircle,
+//   audio: Phone,
+//   video: Video,
+// };
 
 function ConsultationCard({ c }: { c: any }) {
   const { common, patient } = useAppApi();
@@ -110,6 +110,8 @@ function ConsultationCard({ c }: { c: any }) {
   );
 }
 
+
+//TODO: clearly all the things we have tried to do with the meeting is not working video/Audio
 export default function PatientConsultations() {
   const { patient } = useAppApi();
   const [page, setPage] = useState(1);

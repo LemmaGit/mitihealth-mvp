@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const UserRoutes = lazy(() => import("./routes/User.routes"));
 
+
+//TODO: same problem here when we click a page it stays there until the new page mounts fix this by adding a loading screen also make sure the links is navigated immediately changing the active style
 const App = () => {
   const { user, isLoaded, isSignedIn } = useAuth();
   const userRole = user?.unsafeMetadata?.role;

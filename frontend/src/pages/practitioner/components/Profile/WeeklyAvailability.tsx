@@ -16,7 +16,6 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 export default function WeeklyAvailability({ disabled = false }: { disabled?: boolean }) {
   const { watch, setValue } = useFormContext<ProfileFormValues>();
   const availability = mergeAvailability(defaultValuesObj.availability, watch("availability") || []); 
-  console.log(availability,"xjjjj")
   const toggleDay = (dayIndex: number) => {
     if (disabled) return;
     const updated = [...availability];

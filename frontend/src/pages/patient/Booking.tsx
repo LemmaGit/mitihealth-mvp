@@ -125,7 +125,13 @@ const TYPE_META: Record<
     duration: 45,
   },
 };
+//TODO: Patient was able to book after the time is over and in the 
+// practitioner consultation page uit does not show that is is in the past
+// and says join
+// also after the practitoner is notified he has a consulation booked by 
+// a patient but we don't invalidate the query
 
+//TODO: when the page loads iDk what is happening but when fetching the paractioner data it comes with emty data fix that by either introducing a loading screen
 const Booking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -143,7 +149,6 @@ const Booking = () => {
   });
 
 
-console.log(practitioner,"👊")
   const bookableDates = useMemo(
     () => bookableDatesFromAvailability(practitioner?.availability),
     [practitioner?.availability],

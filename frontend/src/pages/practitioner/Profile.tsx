@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,14 +16,12 @@ import WeeklyAvailability from "./components/Profile/WeeklyAvailability";
 import SidebarContent from "./components/Profile/SidebarContent";
 
 export default function PractitionerProfile() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { practitioner } = useAppApi();
   const { authUser: user } = useAuthStore();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [imageModified, setImageModified] = useState(false);
-
- 
+  const [imageModified, setImageModified] = useState(false); 
 
   const { data: existing } = useQuery({
     queryKey: ["practitioner", "self", user?.id],
@@ -53,7 +51,7 @@ export default function PractitionerProfile() {
       toast.success("Profile saved successfully!");
       queryClient.invalidateQueries({ queryKey: ["practitioner", user?.id] });
       console.log("Profile saved successfully!");
-      navigate("/");
+      // navigate("/");
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to save profile");
@@ -65,6 +63,7 @@ export default function PractitionerProfile() {
       ...data,
       availability: data.availability?.filter((day) => day.enabled && day.slots.length > 0) || [],
     };
+    console.log(data,"😁",payload)
     mutation.mutate(payload);
   };
 
