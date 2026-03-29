@@ -1,7 +1,7 @@
-import { Notification } from "../models/notification.model.ts";
-import { User } from "../models/User.model.ts";
-import { io, getReceiverSocketId } from "../lib/socket.ts";
-import { sendEmail } from "../lib/mailer.ts";
+import { Notification } from "../models/notification.model";
+import { User } from "../models/User.model";
+import { io, getReceiverSocketId } from "../lib/socket";
+import { sendEmail } from "../lib/mailer";
 
 export const createNotification = async (input: {
   userId: string;

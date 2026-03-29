@@ -1,5 +1,5 @@
-import { Product } from "../models/product.model.ts";
-import { createNotificationsForRole } from "./notification.service.ts";
+import { Product } from "../models/product.model";
+import { createNotificationsForRole } from "./notification.service";
 
 const ALLOWED_VERIFICATION_PRODUCT_STATUSES = ["approved", "rejected"] as const;
 

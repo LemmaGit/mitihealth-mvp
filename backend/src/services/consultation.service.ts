@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { Consultation } from "../models/consultation.model.ts";
-import { Message } from "../models/message.model.ts";
-import { createNotification } from "./notification.service.ts";
-import { io } from "../lib/socket.ts";
-import { User } from "../models/user.model.ts";
+import { Consultation } from "../models/consultation.model";
+import { Message } from "../models/message.model";
+import { createNotification } from "./notification.service";
+import { io } from "../lib/socket";
+import { User } from "../models/User.model";
 
 export const CONSULTATION_DURATIONS = {
   chat: 30,   // 450 ETB

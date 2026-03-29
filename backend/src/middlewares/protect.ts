@@ -1,6 +1,6 @@
 import status from "http-status";
 import { getAuth } from "@clerk/express";
-import ApiError from "../utils/ApiError.ts";
+import ApiError from "../utils/ApiError";
 
 export const protect = (req: any, res: any, next: any) => {
   const { userId } = getAuth(req);

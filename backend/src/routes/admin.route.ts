@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { protectRole } from "../middlewares/protectRole.ts";
+import { protectRole } from "../middlewares/protectRole";
 import {
   analyticsHandler,
   listUsersHandler,
   listPractitionersHandler,
   verifyPractitionerHandler,
   verifyProductHandler,
-} from "../controllers/admin.controller.ts";
+} from "../controllers/admin.controller";
 
 const router = Router();
 

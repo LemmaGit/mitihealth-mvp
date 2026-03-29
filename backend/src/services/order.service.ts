@@ -1,6 +1,6 @@
-import { Order } from "../models/order.model.ts";
-import { Product } from "../models/product.model.ts";
-import { createNotification } from "./notification.service.ts";
+import { Order } from "../models/order.model";
+import { Product } from "../models/product.model";
+import { createNotification } from "./notification.service";
 
 const ALLOWED_ORDER_STATUSES = ["placed", "confirmed", "shipped", "completed"] as const;
 
