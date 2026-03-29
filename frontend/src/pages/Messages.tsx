@@ -1,22 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   Send,
-  Paperclip,
-  Smile,
-  Phone,
-  Video,
-  MoreVertical,
-  Info,
   Image as ImageIcon,
-  ChevronLeft,
   Loader2,
-  X,
-  Bell,
-  Settings,
-  MessageSquarePlus,
-  Archive,
-  Users,
-  CheckCheck,
 } from "lucide-react";
 import { useSearchParams} from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +13,7 @@ import Aside from "../components/message/Message.Aside";
 import Placeholder from "../components/message/Message.Placeholder";
 import Footer from "../components/message/Message.Footer";
 import Main from "../components/message/Message.Main";
+import useRoomSession from "../hooks/useRoomSession";
 
 type ApiMessage = {
   _id: string;
@@ -38,16 +25,6 @@ type ApiMessage = {
   updatedAt?: string;
 };
 
-// type User = {
-//   clerkId: string;
-//   name: string;
-//   role: string;
-//   avatar?: string;
-//   lastMessage?: string;
-//   time?: string;
-//   online?: boolean;
-//   unreadCount?: number;
-// };
 
 function useReceiverId() {
   const [params] = useSearchParams();
@@ -59,68 +36,6 @@ function useReceiverId() {
   );
 }
 
-function useRoomSession() {
-  const [params] = useSearchParams();
-  const roomId = params.get("roomId");
-  const { patient, practitioner } = useAppApi();
-  const { authUser } = useAuthStore();
-  
-  const { data: sessionInfo, isLoading } = useQuery({
-    queryKey: ["consultation", "status", roomId],
-    queryFn: () => {
-      if (!roomId) return null;
-      // Try both APIs since user could be patient or practitioner
-      const api = authUser?.unsafeMetadata?.role === "practitioner" ? practitioner : patient;
-      return api.getConsultationStatus(roomId);
-    },
-    enabled: !!roomId,
-    refetchInterval: roomId ? 30000 : false, // Poll every 30 seconds for active sessions
-  });
-  // Get the consultation details to find the other participant
-  const { data: consultationDetails } = useQuery({
-    queryKey: ["consultation", "details", roomId],
-    queryFn: () => {
-      if (!roomId) return null;
-      const api = authUser?.unsafeMetadata?.role === "practitioner" ? practitioner : patient;
-      // We need to get the consultation details to find the other participant
-      return api.getMyConsultations().then((consultations: any[]) => 
-        consultations.find(c => c._id === roomId)
-      );
-    },
-    enabled: !!roomId,
-  });
-
-  const completeSessionMutation = useMutation({
-    mutationFn: () => {
-      if (!roomId) return Promise.resolve();
-      const api = authUser?.unsafeMetadata?.role === "practitioner" ? practitioner : patient;
-      return api.completeConsultation(roomId);
-    },
-    onSuccess: () => {
-      // Redirect back to consultations
-      window.location.href = `/${authUser?.unsafeMetadata?.role}`;
-    }
-  });
-
-  const formatTimeRemaining = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
-
-  return {
-    sessionInfo,
-    consultationDetails,
-    isLoading,
-    isRoomSession: !!roomId,
-    completeSession: () => completeSessionMutation.mutate(),
-    formatTimeRemaining,
-    timeRemaining: sessionInfo?.timeRemaining || 0,
-    canChat: sessionInfo?.status === "active" && sessionInfo.timeRemaining > 0,
-    sessionType: sessionInfo?.consultationType || sessionInfo?.type || "chat",
-    duration: sessionInfo?.duration || 30
-  };
-}
 
 function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -155,8 +70,8 @@ function formatMessageTime(iso?: string) {
 }
 
 
-//TODO: For chat message the send button becomes disabled for room message
 //TODO: also after the session is over the patient chat is deleted from the practitioner but the patractitioner stays with the patient delete from the patient too
+//TODO: Session ending tooks so long and also notify the other party that the other user has left the session
 const MessagesPage = () => {
   const receiverId = useReceiverId();
   const { common } = useAppApi();
@@ -214,7 +129,6 @@ const MessagesPage = () => {
     }
   }, [socket]);
 
-//TODO: we need to rename the function to getUser
   const { data: userInChatWith, isLoading: userInChatWithLoading } = useQuery({
     queryKey: ["user", actualReceiverId],
     queryFn: () => common.getUser(actualReceiverId),
@@ -333,7 +247,6 @@ const MessagesPage = () => {
   }, [socket, actualReceiverId, queryClient, authUser?.id]);
 
   useEffect(() => {
-    // Auto-scroll on message load
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [sortedMessages, sendMutation.isPending]);
 
@@ -377,6 +290,7 @@ const MessagesPage = () => {
     setPendingFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
+
 
   const canSend = !!actualReceiverId && (newMessageText.trim().length > 0 || !!pendingFile) && 
   (!roomSession.isRoomSession || roomSession.canChat);

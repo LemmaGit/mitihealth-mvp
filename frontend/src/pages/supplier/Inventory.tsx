@@ -45,7 +45,7 @@ export default function SupplierInventory() {
       toast.error(err.message || "Failed to update product.");
     }
   });
-//ToDO: fix update
+
   const handleUpdate = (data: EditFormValues, newImages: File[]) => {
     if (!editProduct) return;
     const formData = new FormData();
@@ -71,7 +71,7 @@ export default function SupplierInventory() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
+      <div className="flex justify-center items-center h-[50vh]">
         <Loader isFullPage={false}><ClipLoader color="#004c22" /></Loader>
       </div>
     );
@@ -129,15 +129,15 @@ export default function SupplierInventory() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="flex md:flex-row flex-col md:justify-between md:items-start gap-4">
         <div>
-          <span className="text-xs font-medium uppercase tracking-widest text-primary">
+          <span className="font-medium text-primary text-xs uppercase tracking-widest">
             Supplier Dashboard
           </span>
-          <h1 className="mt-1 font-display text-xl font-bold">
+          <h1 className="mt-1 font-display font-bold text-xl">
             Product Inventory
           </h1>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
+          <p className="mt-1 max-w-md text-muted-foreground text-sm">
             Manage your botanical catalog, track stock levels, and update
             availability across the MitiHealth marketplace.
           </p>
@@ -145,18 +145,18 @@ export default function SupplierInventory() {
         <div className="flex flex-wrap gap-3">
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              className="top-1/2 left-3 absolute text-muted-foreground -translate-y-1/2"
               size={16}
             />
             <Input
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full sm:w-60 bg-card pl-9 border-border/30"
+              className="bg-card pl-9 border-border/30 w-full sm:w-60 h-10"
             />
           </div>
           <Button
-            className="botanical-gradient text-primary-foreground"
+            className="text-primary-foreground botanical-gradient"
             onClick={() => navigate("/supplier/add-product")}
           >
             <Plus size={16} /> Add Product
@@ -164,10 +164,10 @@ export default function SupplierInventory() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="gap-3 grid grid-cols-2 lg:grid-cols-4">
         {statsList.map((s) => (
-          <div key={s.label} className="rounded-xl bg-card p-4 shadow-botanical">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <div key={s.label} className="bg-card shadow-botanical p-4 rounded-xl">
+            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
               {s.label}
             </p>
             <p className={`mt-1 font-display text-2xl sm:text-3xl font-bold ${s.color || "text-foreground"}`}>
@@ -185,20 +185,20 @@ export default function SupplierInventory() {
         </TabsList>
       </Tabs>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="gap-4 grid sm:grid-cols-2 lg:grid-cols-3">
         {/* Add new product card (always present as first item on page 1, acting as CTA) */}
         {currentPage === 1 && activeTab === "all" && !searchQuery && (
           <button
             onClick={() => navigate("/supplier/add-product")}
-            className="flex flex-col items-center justify-center rounded-xl bg-card p-8 shadow-botanical ghost-border text-left hover:shadow-lg transition-shadow min-h-[300px]"
+            className="flex flex-col justify-center items-center bg-card shadow-botanical hover:shadow-lg p-8 ghost-border rounded-xl min-h-[300px] text-left transition-shadow"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+            <div className="flex justify-center items-center bg-muted rounded-full w-14 h-14">
               <Plus size={24} className="text-muted-foreground" />
             </div>
             <h3 className="mt-4 font-display font-semibold">
               List New Product
             </h3>
-            <p className="mt-1 text-center text-xs text-muted-foreground">
+            <p className="mt-1 text-muted-foreground text-xs text-center">
               Expand your digital herbal catalog and reach more practitioners.
             </p>
           </button>
@@ -214,25 +214,25 @@ export default function SupplierInventory() {
         ))}
 
         {filtered.length === 0 && (currentPage !== 1 || activeTab !== "all" || searchQuery) && (
-          <div className="col-span-full rounded-xl border border-dashed border-border/50 p-8 text-center text-muted-foreground">
+          <div className="col-span-full p-8 border border-border/50 border-dashed rounded-xl text-muted-foreground text-center">
             No products match this criteria.
           </div>
         )}
       </div>
 
       {filtered.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/15 pt-4">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex sm:flex-row flex-col justify-between items-center gap-3 pt-4 border-border/15 border-t">
+          <p className="text-muted-foreground text-sm">
             Showing <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-semibold text-foreground">{filtered.length}</span> products
           </p>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+            <Button variant="outline" size="icon" className="border-border/30 w-9 h-9" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
               <ChevronLeft size={16} />
             </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30 whitespace-nowrap px-8" disabled>
+            <Button variant="outline" size="icon" className="px-8 border-border/30 w-9 h-9 whitespace-nowrap" disabled>
               Page {currentPage} of {totalPages}
             </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 border-border/30" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages || totalPages === 0}>
+            <Button variant="outline" size="icon" className="border-border/30 w-9 h-9" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages || totalPages === 0}>
               <ChevronRight size={16} />
             </Button>
           </div>

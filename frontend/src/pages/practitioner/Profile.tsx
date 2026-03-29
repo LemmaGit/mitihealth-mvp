@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -50,8 +49,6 @@ export default function PractitionerProfile() {
     onSuccess: () => {
       toast.success("Profile saved successfully!");
       queryClient.invalidateQueries({ queryKey: ["practitioner", user?.id] });
-      console.log("Profile saved successfully!");
-      // navigate("/");
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to save profile");
@@ -132,7 +129,7 @@ export default function PractitionerProfile() {
           />
         </div>
 
-        <div className="gap-8 grid lg:grid-cols-[1fr_300px]">
+        <div className="gap-8 grid lg:grid-cols-[1fr_300px] overflow-y-auto">
           {/* Main Form */}
           <div className="space-y-8">
             <ProfessionalIdentity disabled={isPending} />
@@ -140,13 +137,14 @@ export default function PractitionerProfile() {
           </div>
 
           {/* Desktop: Right Sidebar */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:block self-start">
             <SidebarContent 
               profileImage={profileImage} 
               onImageChange={handleImageChange}
               disabled={isPending}
             />
           </div>
+
         </div>
       </form>
     </FormProvider>

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 export const connectDb = async () => {
-  //TODO: Fix "MONGODB_URI is not defined" problem for now we will manually use it
 
   // const mongoUri = process.env.MONGO_REMOTE_URI;
   const mongoUri = "mongodb://127.0.0.1:27017/mitihealth-mvp";

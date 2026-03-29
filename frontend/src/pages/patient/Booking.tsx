@@ -125,11 +125,8 @@ const TYPE_META: Record<
     duration: 45,
   },
 };
-//TODO: Patient was able to book after the time is over and in the 
-// practitioner consultation page uit does not show that is is in the past
-// and says join
-// also after the practitoner is notified he has a consulation booked by 
-// a patient but we don't invalidate the query
+//TODO: Patient was able to book after the time is over and in the practitioner consultation page does not show that is is in the past and says join
+
 
 //TODO: when the page loads iDk what is happening but when fetching the paractioner data it comes with emty data fix that by either introducing a loading screen
 const Booking = () => {
@@ -429,7 +426,7 @@ const Booking = () => {
                       );
                     })}
                   </div>
-                  <div className="gap-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                  <div className="gap-3 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
                     {slots.map((slot, idx) => {
                       const active = idx === selectedSlotIndex;
                       return (
