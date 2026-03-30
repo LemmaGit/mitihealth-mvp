@@ -11,6 +11,7 @@ interface Order {
     _id: string;
     name: string;
     images?: string[];
+    imageUrls?: string[];
     description?: string;
   };
   quantity: number;

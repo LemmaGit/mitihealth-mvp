@@ -27,6 +27,8 @@ interface Order {
     _id: string;
     name: string;
     images?: string[];
+    imageUrls?: string[];
+    supplierId?: string;
   };
   quantity: number;
   orderStatus: OrderStatus;

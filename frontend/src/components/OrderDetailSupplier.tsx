@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Truck, Package, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 
 import moringaImg from "@/assets/moringa-extract.jpg";
@@ -32,21 +32,18 @@ const statusConfig = {
 export default function FulfillmentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const order = id ? ordersData[id] : null;
 
   const [currentStatus, setCurrentStatus] = useState<string>(order?.status || "confirmed");
 
   if (!order) {
     return (
-      <SupplierLayout>
-        <div className="flex flex-col justify-center items-center py-24 text-center">
-          <p className="font-semibold text-foreground text-lg">Order not found</p>
-          <Button variant="outline" className="mt-4" asChild>
-            <Link to="/supplier/fulfillment">Back to Fulfillment</Link>
-          </Button>
-        </div>
-      </SupplierLayout>
+      <div className="flex flex-col justify-center items-center py-24 text-center">
+        <p className="font-semibold text-foreground text-lg">Order not found</p>
+        <Button variant="outline" className="mt-4" asChild>
+          <Link to="/supplier/fulfillment">Back to Fulfillment</Link>
+        </Button>
+      </div>
     );
   }
 
@@ -56,10 +53,7 @@ export default function FulfillmentDetail() {
     const newIdx = statuses.indexOf(status as typeof statuses[number]);
     if (newIdx < currentIdx) return; // can't go backward
     setCurrentStatus(status);
-    toast({
-      title: "Status Updated",
-      description: `Order #${id} marked as ${statusConfig[status as keyof typeof statusConfig].label}.`,
-    });
+    toast.success(`Status Updated: Order #${id} marked as ${statusConfig[status as keyof typeof statusConfig].label}.`);
   };
 
   return (

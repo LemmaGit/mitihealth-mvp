@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 import kosoImg from "@/assets/koso-tincture.jpg";
 import moringaImg from "@/assets/moringa-blend.jpg";
@@ -56,7 +56,6 @@ const statusDot: Record<OrderStatus, string> = {
 };
 
 export default function PatientOrders() {
-  const { toast } = useToast();
   const [orders, setOrders] = useState(allOrders);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"all" | "ongoing" | "completed">("all");
@@ -83,7 +82,7 @@ export default function PatientOrders() {
   const handleCancel = () => {
     if (!cancelTarget) return;
     setOrders((prev) => prev.map((o) => (o.id === cancelTarget.id ? { ...o, status: "CANCELLED" as OrderStatus } : o)));
-    toast({ title: "Order Cancelled", description: `${cancelTarget.name} has been cancelled.` });
+    toast.success(`Order Cancelled: ${cancelTarget.name} has been cancelled.`);
     setCancelTarget(null);
   };
 

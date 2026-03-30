@@ -13,6 +13,7 @@ interface Order {
     _id: string;
     name: string;
     images?: string[];
+    imageUrls?: string[];
   };
   quantity: number;
   orderStatus: "placed" | "confirmed" | "shipped" | "completed";

@@ -51,7 +51,7 @@ const Index = () => {
       yearsExp: yearsPracticing(p.practicingSinceEC as number),
       image: PRACTITIONER_PLACEHOLDER_IMG,
       verified: p.verificationStatus === "approved",
-      ...p.clerkInfo!,
+      ...(p.clerkInfo as any || {}),
     }));
 
     const q = debouncedSearchQuery.toLowerCase().trim();
