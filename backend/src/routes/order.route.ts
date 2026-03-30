@@ -1,17 +1,17 @@
 import { Router } from "express";
-import { protectRole } from "../middlewares/protectRole.ts";
+import { protectRole } from "../middlewares/protectRole";
 import {
   createOrder,
   getMyOrder,
   getMySupplierOrders,
   getOrderDetails,
   updateOrderStatusForSupplierHandler,
-} from "../controllers/order.controller.ts";
-import { validate } from "../middlewares/validate.ts";
+} from "../controllers/order.controller";
+import { validate } from "../middlewares/validate";
 import {
   CreateOrderSchemaZod,
   UpdateOrderStatusSchemaZod,
-} from "../validations/order.validation.ts";
+} from "../validations/order.validation";
 
 const router = Router();
 

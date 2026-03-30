@@ -1,6 +1,6 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync.ts";
-import { User } from "../models/User.model.ts";
+import catchAsync from "../utils/catchAsync";
+import { User } from "../models/User.model";
 import { clerkClient } from "@clerk/express";
 
 export const getUser = catchAsync(async (req, res) => {

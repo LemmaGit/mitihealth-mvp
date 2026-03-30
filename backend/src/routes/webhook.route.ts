@@ -1,9 +1,9 @@
 import {Router} from "express";
 import { Webhook } from "svix";
-import { User } from "../models/User.model.ts";
-import catchAsync from "../utils/catchAsync.ts";
+import { User } from "../models/User.model";
+import catchAsync from "../utils/catchAsync";
 import status from "http-status";
-import ApiError from "../utils/ApiError.ts";
+import ApiError from "../utils/ApiError";
 
 const router = Router();
 

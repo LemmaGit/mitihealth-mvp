@@ -1,14 +1,14 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync.ts";
-import ApiError from "../utils/ApiError.ts";
+import catchAsync from "../utils/catchAsync";
+import ApiError from "../utils/ApiError";
 import {
   getAdminAnalytics,
   listAllUsers,
   listAllPractitioners,
   verifyPractitionerStatus,
   verifyProductStatus,
-} from "../services/admin.service.ts";
-import { createNotification } from "../services/notification.service.ts";
+} from "../services/admin.service";
+import { createNotification } from "../services/notification.service";
 
 export const verifyPractitionerHandler = catchAsync(async (req, res) => {
   const { status: statusFromBody } = req.body ?? {};

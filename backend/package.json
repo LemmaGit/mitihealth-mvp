@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "tsx dist/index.js",
     "sync-users": "tsx scripts/sync-clerk-users.ts"
   },
   "keywords": [],

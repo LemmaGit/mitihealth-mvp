@@ -1,13 +1,13 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync.ts";
-import ApiError from "../utils/ApiError.ts";
+import catchAsync from "../utils/catchAsync";
+import ApiError from "../utils/ApiError";
 import {
   createConsultationForPatient,
   getConsultationsForUser,
   startConsultationSession,
   completeConsultationSession,
   getConsultationStatus,
-} from "../services/consultation.service.ts";
+} from "../services/consultation.service";
 
 export const bookConsultation = catchAsync(async (req: any, res) => {
   const userId: string | undefined = req.userId;

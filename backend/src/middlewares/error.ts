@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import status from "http-status";
-import ApiError from "../utils/ApiError.ts";
+import ApiError from "../utils/ApiError";
 
 interface CustomError extends Error {
   statusCode?: number;

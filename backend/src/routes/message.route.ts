@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { getMessages, sendMessage, getUsersForSidebar, hideConversation } from "../controllers/message.controller.ts";
-import { upload } from "../lib/multer.ts";
+import { getMessages, sendMessage, getUsersForSidebar, hideConversation } from "../controllers/message.controller";
+import { upload } from "../lib/multer";
 
 const router = Router();
 

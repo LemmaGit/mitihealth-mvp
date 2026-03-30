@@ -1,6 +1,6 @@
 //@ts-ignore
 import streamifier from "streamifier";
-import cloudinary from "../lib/cloudinary.ts";
+import cloudinary from "../lib/cloudinary";
 import type { Request } from "express";
 import { clerkClient } from "@clerk/express";
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { clearOne, getMyNotifications, markAsRead } from "../controllers/notification.controller.ts";
+import { clearOne, getMyNotifications, markAsRead } from "../controllers/notification.controller";
 
 const router = Router();
 

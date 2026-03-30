@@ -1,12 +1,12 @@
 import status from "http-status";
-import { Message } from "../models/message.model.ts";
-import { User } from "../models/User.model.ts";
-import { HiddenConversation } from "../models/hiddenConversation.model.ts";
-import { Conversation } from "../models/conversation.model.ts";
-import { sendMessageService } from "../services/message.service.ts";
-import catchAsync from "../utils/catchAsync.ts";
+import { Message } from "../models/message.model";
+import { User } from "../models/User.model";
+import { HiddenConversation } from "../models/hiddenConversation.model";
+import { Conversation } from "../models/conversation.model";
+import { sendMessageService } from "../services/message.service";
+import catchAsync from "../utils/catchAsync";
 import {clerkClient} from "@clerk/express"
-import { getClerkUsers } from "../utils/helpers.ts";
+import { getClerkUsers } from "../utils/helpers";
 
 export const getUsersForSidebar = catchAsync(async (req, res) => {
   //@ts-ignore  

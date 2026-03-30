@@ -1,6 +1,6 @@
 import status from "http-status";
 import { clerkClient } from "@clerk/express";
-import ApiError from "../utils/ApiError.ts";
+import ApiError from "../utils/ApiError";
 
 export const protectRole = (allowedRoles: string[]) => {
   return async (req: any, res: any, next: any) => {

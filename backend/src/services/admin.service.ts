@@ -1,8 +1,8 @@
-import { Consultation } from "../models/consultation.model.ts";
-import { Order } from "../models/order.model.ts";
-import { Practitioner } from "../models/Practitioner.model.ts";
-import { Product } from "../models/product.model.ts";
-import { User } from "../models/User.model.ts";
+import { Consultation } from "../models/consultation.model";
+import { Order } from "../models/order.model";
+import { Practitioner } from "../models/Practitioner.model";
+import { Product } from "../models/product.model";
+import { User } from "../models/User.model";
 
 const ALLOWED_VERIFICATION_STATUSES = ["pending", "approved", "rejected"] as const;
 
