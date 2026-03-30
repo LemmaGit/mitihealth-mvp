@@ -1,9 +1,9 @@
 import {Router} from "express";
 import { Webhook } from "svix";
-import { User } from "../models/User.model";
-import catchAsync from "../utils/catchAsync";
+import { User } from "../models/User.model.ts";
+import catchAsync from "../utils/catchAsync.ts";
 import status from "http-status";
-import ApiError from "../utils/ApiError";
+import ApiError from "../utils/ApiError.ts";
 
 const router = Router();
 
@@ -23,44 +23,12 @@ router.post("/", catchAsync(async (req, res) => {
     return res.status(400).json({ success: false });
   }
 
-  const eventType = evt.type;
-  const data = evt.data;
+  const eventType = (evt as any).type;
+  const data = (evt as any).data;
 
-// since we have onboarding page we dont need to create user here after their role is
-// assigned we can create the user
-
-  /*if (eventType === 'user.created') {
-    const role = (data.unsafe_metadata as any)?.role || 'patient';
-    
-    await User.create({
-      clerkId: data.id,
-      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      email: data.email_addresses?.[0]?.email_address,
-      role: role,
-    });
-  
-    if (role === 'practitioner') {
-      await Practitioner.create({
-        clerkId: data.id,
-        verificationStatus: 'pending', 
-        specialization: '',
-        practicingSinceEC: 2000,
-        location: '',
-        consultationTypes: {
-          chat: { enabled: false, price: 0 },
-          audio: { enabled: false, price: 0 },
-          video: { enabled: false, price: 0 }
-        },
-      });
-    }
-  
-    console.log(`✅ User created: ${data.id} (${role})`);
-  }
-  */
   if (eventType === 'user.updated') {
     const role = (data.unsafe_metadata as any)?.role;
     if(!role) return res.status(status.BAD_REQUEST).json(new ApiError(status.BAD_REQUEST,"Role not found"));
-    // Create User record
     await User.create({
       clerkId: data.id,
       name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
@@ -73,7 +41,7 @@ router.post("/", catchAsync(async (req, res) => {
     console.log(`✅ User created: ${data.id} (${role})`);
   }
 
-  res.status(200).json({ success: true });
+  return res.status(200).json({ success: true });
 }));
 
 export default router;

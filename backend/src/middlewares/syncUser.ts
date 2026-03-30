@@ -1,8 +1,8 @@
 import status from "http-status";
 import { clerkClient } from "@clerk/express";
-import { User } from "../models/User.model";
-import catchAsync from "../utils/catchAsync";
-import ApiError from "../utils/ApiError";
+import { User } from "../models/User.model.ts";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
 
 export const syncUser = catchAsync(async (req, res, next) => {
   const auth = (req as any).auth;

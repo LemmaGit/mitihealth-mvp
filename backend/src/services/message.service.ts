@@ -1,9 +1,9 @@
 import status from "http-status";
-import { Message } from "../models/message.model";
-import { Conversation } from "../models/conversation.model";
-import ApiError from "../utils/ApiError";
-import { uploadImage } from "../utils/helpers";
-import { getReceiverSocketId, io } from "../lib/socket";
+import { Message } from "../models/message.model.ts";
+import { Conversation } from "../models/conversation.model.ts";
+import ApiError from "../utils/ApiError.ts";
+import { uploadImage } from "../utils/helpers.ts";
+import { getReceiverSocketId, io } from "../lib/socket.ts";
 
 //TODO: make sure they are in a room
 export const sendMessageService = async (senderId:string,receiverId:string,text:string,file:Express.Multer.File) => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AdminVerificationStatusSchemaZod } from "./practitioner.validation";
+import { AdminVerificationStatusSchemaZod } from "./practitioner.validation.ts";
 
 // Multipart/form-data sends all fields as strings; parse JSON strings into arrays.
 const parseArray = (val: unknown): unknown => {

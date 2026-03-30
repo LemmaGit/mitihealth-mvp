@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { ZodTypeAny } from "zod";
 import status from "http-status";
-import ApiError, { type ValidationErrorItem } from "../utils/ApiError";
+import ApiError, { type ValidationErrorItem } from "../utils/ApiError.ts";
 
 type ZodIssueLike = { path: unknown[]; message: string };
 

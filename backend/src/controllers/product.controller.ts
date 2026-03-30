@@ -1,8 +1,8 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync";
-import ApiError from "../utils/ApiError";
-import { Product } from "../models/product.model";
-import { createProduct, getProductsOfSupplier, updateProduct, verifyProductStatus } from "../services/product.service";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
+import { Product } from "../models/product.model.ts";
+import { createProduct, getProductsOfSupplier, updateProduct, verifyProductStatus } from "../services/product.service.ts";
 
 // ✅
 export const createProductController = catchAsync(async (req, res, next) => {

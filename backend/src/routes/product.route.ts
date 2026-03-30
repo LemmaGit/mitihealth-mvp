@@ -7,16 +7,16 @@ import {
   getSupplierProductsAndStats,
   getAllVerifiedProducts,
   getAllProducts,
-} from "../controllers/product.controller";
-import { validate } from "../middlewares/validate";
+} from "../controllers/product.controller.ts";
+import { validate } from "../middlewares/validate.ts";
 import {
   ProductCreateSchemaZod,
   ProductUpdateSchemaZod,
   ProductVerificationSchemaZod,
-} from "../validations/product.validation";
-import { upload } from "../lib/multer";
-import { uploadMultipleImages } from "../middlewares/uploadMultipleImages";
-import { protectRole } from "../middlewares/protectRole";
+} from "../validations/product.validation.ts";
+import { upload } from "../lib/multer.ts";
+import { uploadMultipleImages } from "../middlewares/uploadMultipleImages.ts";
+import { protectRole } from "../middlewares/protectRole.ts";
 
 const router = Router();
 

@@ -1,14 +1,14 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync";
-import ApiError from "../utils/ApiError";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
 import {
   findPractitionerById,
   findVerifiedPractitioners,
   updatePractitionerAvailabilityAndFee,
   updatePractitionerVerification,
   upsertPractitionerProfile,
-} from "../services/practitioner.service";
-import { Practitioner } from "../models/Practitioner.model";
+} from "../services/practitioner.service.ts";
+import { Practitioner } from "../models/Practitioner.model.ts";
 
 export const getAllVerifiedPractitioners = catchAsync(async (req, res) => {
   const practitioners = await findVerifiedPractitioners(req.query);

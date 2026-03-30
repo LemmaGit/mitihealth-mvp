@@ -6,10 +6,10 @@ import {
   startConsultation,
   completeConsultation,
   getConsultationStatusController,
-} from "../controllers/consultation.controller";
-import { protectRole } from "../middlewares/protectRole";
-import { validate } from "../middlewares/validate";
-import { ConsultationCreateSchemaZod } from "../validations/consultation.validation";
+} from "../controllers/consultation.controller.ts";
+import { protectRole } from "../middlewares/protectRole.ts";
+import { validate } from "../middlewares/validate.ts";
+import { ConsultationCreateSchemaZod } from "../validations/consultation.validation.ts";
 
 const router = Router();
 

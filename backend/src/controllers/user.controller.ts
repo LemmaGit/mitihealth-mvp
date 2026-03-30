@@ -1,6 +1,6 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync";
-import { User } from "../models/User.model";
+import catchAsync from "../utils/catchAsync.ts";
+import { User } from "../models/User.model.ts";
 import { clerkClient } from "@clerk/express";
 
 export const getUser = catchAsync(async (req, res) => {
@@ -13,7 +13,7 @@ export const getUser = catchAsync(async (req, res) => {
   }
   
   // Get user info from Clerk
-  const clerkUser = await clerkClient.users.getUser(id);
+  const clerkUser = await clerkClient.users.getUser(id as string);
   
   // Combine user data
   const userData = {
@@ -28,5 +28,5 @@ export const getUser = catchAsync(async (req, res) => {
     imageUrl: clerkUser.imageUrl
   };
   
-  res.status(status.OK).json(userData);
+  return res.status(status.OK).json(userData);
 });

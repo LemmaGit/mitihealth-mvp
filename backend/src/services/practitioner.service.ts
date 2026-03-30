@@ -1,6 +1,6 @@
 import { clerkClient} from "@clerk/express";
-import { Practitioner } from "../models/Practitioner.model";
-import { createNotificationsForRole } from "./notification.service";
+import { Practitioner } from "../models/Practitioner.model.ts";
+import { createNotificationsForRole } from "./notification.service.ts";
 
 const ALLOWED_VERIFICATION_STATUSES = ["pending", "approved", "rejected"] as const;
 

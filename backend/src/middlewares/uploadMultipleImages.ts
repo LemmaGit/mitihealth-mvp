@@ -1,6 +1,6 @@
 import streamifier from "streamifier";
-import cloudinary from "../lib/cloudinary";
-import catchAsync from "../utils/catchAsync";
+import cloudinary from "../lib/cloudinary.ts";
+import catchAsync from "../utils/catchAsync.ts";
 
 export const uploadMultipleImages = catchAsync(async (req, res, next) => {
   // @ts-ignore

@@ -1,13 +1,13 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync";
-import ApiError from "../utils/ApiError";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
 import {
   createOrderForPatient,
   getOrdersForPatient,
   getSupplierOrders,
   getOrderById,
   updateOrderStatusForSupplier,
-} from "../services/order.service";
+} from "../services/order.service.ts";
 
 export const createOrder = catchAsync(async (req: any, res) => {
   const userId: string | undefined = req.userId;

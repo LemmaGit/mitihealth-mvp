@@ -1,9 +1,7 @@
 import { Router } from "express";
 
-import { getMessages, sendMessage, getUsersForSidebar, hideConversation } from "../controllers/message.controller";
-import { upload } from "../lib/multer";
-import { validate } from "../middlewares/validate";
-import { SentMessageSchemaZod } from "../validations/message.validation";
+import { getMessages, sendMessage, getUsersForSidebar, hideConversation } from "../controllers/message.controller.ts";
+import { upload } from "../lib/multer.ts";
 
 const router = Router();
 

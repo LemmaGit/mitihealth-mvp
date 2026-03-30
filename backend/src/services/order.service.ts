@@ -1,6 +1,6 @@
-import { Order } from "../models/order.model";
-import { Product } from "../models/product.model";
-import { createNotification } from "./notification.service";
+import { Order } from "../models/order.model.ts";
+import { Product } from "../models/product.model.ts";
+import { createNotification } from "./notification.service.ts";
 
 const ALLOWED_ORDER_STATUSES = ["placed", "confirmed", "shipped", "completed"] as const;
 
@@ -51,9 +51,9 @@ export const updateOrderStatusForSupplier = async (
   if (!order.productId) return null; // product not found / not populated (non-supplier)
 
   // Suppliers can only update orders for their own products.
-  if (order.productId.supplierId !== supplierId) return null;
+  if ((order.productId as any).supplierId !== supplierId) return null;
 
-  order.orderStatus = orderStatus;
+  order.orderStatus = orderStatus as "placed" | "confirmed" | "shipped" | "completed";
   await order.save();
   return order;
 };

@@ -1,7 +1,6 @@
 import http from "http";
 import { Server } from "socket.io";
 import express from "express";
-import { Message } from "../models/message.model";
 
 const app = express();
 const server = http.createServer(app);

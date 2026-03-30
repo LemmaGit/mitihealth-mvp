@@ -3,26 +3,26 @@ import express from "express";
 import cors from "cors";
 import httpStatus from "http-status";
 import { clerkMiddleware } from "@clerk/express";
-import { app, server } from "./lib/socket";
-import { connectDb } from "./lib/db";
+import { app, server } from "./lib/socket.ts";
+import { connectDb } from "./lib/db.ts";
 import cron from "node-cron";
-import { checkAndCreateConsultationThreads } from "./services/consultation.service";
+import { checkAndCreateConsultationThreads } from "./services/consultation.service.ts";
 
 // Routers
-import webhookRouter from "./routes/webhook.route";
-import adminRouter from "./routes/admin.route";
-import practitionerRouter from "./routes/practitioner.route";
-import productRouter from "./routes/product.route";
-import consultationRouter from "./routes/consultation.route";
-import orderRouter from "./routes/order.route";
-import messageRouter from "./routes/message.route";
-import notificationRouter from "./routes/notification.route";
-import userRouter from "./routes/user.route";
+import webhookRouter from "./routes/webhook.route.ts";
+import adminRouter from "./routes/admin.route.ts";
+import practitionerRouter from "./routes/practitioner.route.ts";
+import productRouter from "./routes/product.route.ts";
+import consultationRouter from "./routes/consultation.route.ts";
+import orderRouter from "./routes/order.route.ts";
+import messageRouter from "./routes/message.route.ts";
+import notificationRouter from "./routes/notification.route.ts";
+import userRouter from "./routes/user.route.ts";
 
-import ApiError from "./utils/ApiError";
-import { errorConverter, errorHandler } from "./middlewares/error";
-import { protect } from "./middlewares/protect";
-import { syncUser } from "./middlewares/syncUser";
+import ApiError from "./utils/ApiError.ts";
+import { errorConverter, errorHandler } from "./middlewares/error.ts";
+import { protect } from "./middlewares/protect.ts";
+import { syncUser } from "./middlewares/syncUser.ts";
 
 const PORT = process.env.PORT || 5000;
 

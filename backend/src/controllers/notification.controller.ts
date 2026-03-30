@@ -1,11 +1,11 @@
 import status from "http-status";
-import catchAsync from "../utils/catchAsync";
-import ApiError from "../utils/ApiError";
+import catchAsync from "../utils/catchAsync.ts";
+import ApiError from "../utils/ApiError.ts";
 import {
   clearNotification,
   getNotificationsForUser,
   markNotificationRead,
-} from "../services/notification.service";
+} from "../services/notification.service.ts";
 
 export const getMyNotifications = catchAsync(async (req: any, res) => {
   const userId: string | undefined = req.userId;

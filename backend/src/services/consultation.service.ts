@@ -1,14 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import { Consultation } from "../models/consultation.model";
-import { Message } from "../models/message.model";
-import { createNotification } from "./notification.service";
-import { io } from "../lib/socket";
-import { User } from "../models/User.model";
+import { Consultation } from "../models/consultation.model.ts";
+import { createNotification } from "./notification.service.ts";
+import { io } from "../lib/socket.ts";
+import { User } from "../models/User.model.ts";
 
 export const CONSULTATION_DURATIONS = {
-  chat: 30,   // 450 ETB
-  audio: 45,  // 850 ETB
-  video: 60   // 1200 ETB
+  chat: 30,  
+  audio: 45,  
+  video: 60   
 };
 
 export const createConsultationForPatient = async (patientId: string, data: any) => {

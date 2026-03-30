@@ -6,14 +6,14 @@ import {
   getPractitionerData,
   updateAvailabilityAndFee,
   updatePractitionerProfile,
-} from "../controllers/practitioner.controller";
-import { protectRole } from "../middlewares/protectRole";
-import { validate } from "../middlewares/validate";
+} from "../controllers/practitioner.controller.ts";
+import { protectRole } from "../middlewares/protectRole.ts";
+import { validate } from "../middlewares/validate.ts";
 import {
   AdminVerifyPractitionerSchemaZod,
   PractitionerProfileSchemaZod,
   PractitionerUpdateAvailabilitySchemaZod,
-} from "../validations/practitioner.validation";
+} from "../validations/practitioner.validation.ts";
 
 const router = Router();
 

@@ -1,12 +1,12 @@
 import status from "http-status";
-import { Message } from "../models/message.model";
-import { User } from "../models/User.model";
-import { HiddenConversation } from "../models/hiddenConversation.model";
-import { Conversation } from "../models/conversation.model";
-import { sendMessageService } from "../services/message.service";
-import catchAsync from "../utils/catchAsync";
+import { Message } from "../models/message.model.ts";
+import { User } from "../models/User.model.ts";
+import { HiddenConversation } from "../models/hiddenConversation.model.ts";
+import { Conversation } from "../models/conversation.model.ts";
+import { sendMessageService } from "../services/message.service.ts";
+import catchAsync from "../utils/catchAsync.ts";
 import {clerkClient} from "@clerk/express"
-import { getClerkUsers } from "../utils/helpers";
+import { getClerkUsers } from "../utils/helpers.ts";
 
 export const getUsersForSidebar = catchAsync(async (req, res) => {
   //@ts-ignore  
@@ -72,7 +72,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     const { text } = req.body;
     const { id: receiverId } = req.params;
     //@ts-ignore  
-    const senderId = req.userId;  
+    const senderId = req.userId as string;  
     const newMessage = await sendMessageService(senderId,receiverId as string,text,req.file);
     res.status(status.CREATED).json(newMessage);
 });
@@ -83,8 +83,9 @@ export const hideConversation = catchAsync(async (req, res) => {
   const loggedInUserId = req.userId;
     
   // Remove conversation from both users' conversation lists
+  const userIds = [loggedInUserId, userId].filter((id): id is string => Boolean(id));
   await Conversation.deleteMany({
-    "participants.userId": { $in: [loggedInUserId, userId] }
+    "participants.userId": { $in: userIds }
   });
     
   res.status(status.OK).json({ message: "Conversation hidden successfully" });
