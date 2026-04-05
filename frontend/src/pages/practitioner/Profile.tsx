@@ -15,12 +15,9 @@ import WeeklyAvailability from "./components/Profile/WeeklyAvailability";
 import SidebarContent from "./components/Profile/SidebarContent";
 
 export default function PractitionerProfile() {
-  // const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { practitioner } = useAppApi();
   const { authUser: user } = useAuthStore();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [imageModified, setImageModified] = useState(false); 
 
   const { data: existing } = useQuery({
     queryKey: ["practitioner", "self", user?.id],
@@ -38,9 +35,6 @@ export default function PractitionerProfile() {
     formState: { isDirty },
   } = methods;
 
-  const isFormModified = isDirty || imageModified;
-
- 
   const isVerifiedOrNotExists = existing?.verificationStatus === "approved"|| !existing;
   const isPending = existing?.verificationStatus === "pending" ;
 
@@ -60,22 +54,12 @@ export default function PractitionerProfile() {
       ...data,
       availability: data.availability?.filter((day) => day.enabled && day.slots.length > 0) || [],
     };
-    console.log(data,"😁",payload)
     mutation.mutate(payload);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfileImage(URL.createObjectURL(file));
-      setImageModified(true);
-    }
   };
 
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-5xl">
-        {/* Header */}
         <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3">
@@ -102,15 +86,15 @@ export default function PractitionerProfile() {
                   type="button"
                   variant="ghost"
                   className="font-semibold"
-                  onClick={() => { reset(); setImageModified(false); setProfileImage(null); }}
-                  disabled={!isFormModified || mutation.isPending}
+                  onClick={() => reset()}
+                  disabled={!isDirty || mutation.isPending}
                 >
                   Discard Changes
                 </Button>
                 <Button
                   type="submit"
                   className="flex items-center text-primary-foreground botanical-gradient"
-                  disabled={!isFormModified || mutation.isPending}
+                  disabled={!isDirty || mutation.isPending}
                 >
                   {mutation.isPending ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : null}
                   Save Profile
@@ -120,27 +104,20 @@ export default function PractitionerProfile() {
           </div>
         </div>
 
-        {/* Mobile: Sidebar on top */}
         <div className="lg:hidden mb-8">
           <SidebarContent 
-            profileImage={profileImage} 
-            onImageChange={handleImageChange}
             disabled={isPending}
           />
         </div>
 
         <div className="gap-8 grid lg:grid-cols-[1fr_300px] overflow-y-auto">
-          {/* Main Form */}
           <div className="space-y-8">
             <ProfessionalIdentity disabled={isPending} />
             <WeeklyAvailability disabled={isPending} />
           </div>
 
-          {/* Desktop: Right Sidebar */}
           <div className="hidden lg:block self-start">
             <SidebarContent 
-              profileImage={profileImage} 
-              onImageChange={handleImageChange}
               disabled={isPending}
             />
           </div>

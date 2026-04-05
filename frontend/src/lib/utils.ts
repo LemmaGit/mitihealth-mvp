@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { differenceInMinutes, format, isValid } from "date-fns";
-import { parse, set } from "date-fns";
+import { addMinutes, differenceInMinutes, format, isAfter, isBefore, isEqual, isValid } from "date-fns";
+import { parse, set, } from "date-fns";
 import { CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react";
 
 
@@ -122,3 +122,187 @@ export function mergeAvailability(base: Day[], override: Day[]): Day[] {
 
   return Array.from(map.values());
 }
+
+export const parseTime = (time: string) => {
+  const parsed = parse(time, "hh:mm a", new Date());
+  return isValid(parsed) ? parsed : new Date();
+};
+
+export const formatTime = (date: Date) => {
+  if (!isValid(date)) return "12:00 AM";
+  return format(date, "hh:mm a");
+};
+
+export const isTimeOverlap = (
+  newStart: string,
+  newEnd: string,
+  existingSlots: { start: string; end: string }[]
+): boolean => {
+  const newStartDate = parseTime(newStart);
+  const newEndDate = parseTime(newEnd);
+
+  return existingSlots.some(slot => {
+    const slotStart = parseTime(slot.start);
+    const slotEnd = parseTime(slot.end);
+
+    return isBefore(newStartDate, slotEnd) && isAfter(newEndDate, slotStart);
+  });
+};
+
+export const isDuplicateSlot = (
+  newStart: string,
+  newEnd: string,
+  existingSlots: { start: string; end: string }[]
+): boolean => {
+  return existingSlots.some(slot => {
+    const slotStart = parseTime(slot.start);
+    const slotEnd = parseTime(slot.end);
+
+    return (
+      isEqual(parseTime(newStart), slotStart) &&
+      isEqual(parseTime(newEnd), slotEnd)
+    );
+  });
+};
+
+export const findNextAvailableSlot = (
+  existingSlots: { start: string; end: string }[]
+): { start: string; end: string } | null => {
+
+  const MIN = 30;
+  const MAX = 60;
+  const BUFFER = 30;
+  // const DAY_END = parseTime("11:59 PM");
+
+  // If no slots → just start from "now" or 00:00 (your choice)
+  if (existingSlots.length === 0) {
+    return { start: "12:00 AM", end: "01:00 AM" };
+  }
+
+  const sorted = [...existingSlots].sort(
+    (a, b) => parseTime(a.start).getTime() - parseTime(b.start).getTime()
+  );
+  // Check gaps between slots only
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const currentEnd = parseTime(sorted[i].end);
+    const nextStart = parseTime(sorted[i + 1].start);
+
+    const gapStart = addMinutes(currentEnd, BUFFER);
+    const gapEndLimit = addMinutes(gapStart, MAX);
+    const gapEnd = isBefore(gapEndLimit, addMinutes(nextStart, -BUFFER))
+      ? gapEndLimit
+      : addMinutes(nextStart, -BUFFER);
+
+    if ((differenceInMinutes(gapEnd, gapStart) >= MIN) && !isInvalidSlot(formatTime(gapStart), formatTime(gapEnd), existingSlots)) {
+      
+      return {
+        start: formatTime(gapStart),
+        end: formatTime(gapEnd),
+      };
+    }
+  }
+
+  // Check if we can add after last slot
+  const lastEnd = parseTime(sorted[sorted.length - 1].end);
+  const start = addMinutes(lastEnd, BUFFER);
+  const end = addMinutes(start, MAX);
+
+ /* if (isAfter(start, parseTime("11:00 PM")) || isAfter(end, DAY_END)) {
+    return null;
+  }*/
+
+    const formattedstart = formatTime(start)
+    const formattedEnd = formatTime(end)
+  if (isInvalidSlot(formattedstart, formattedEnd, existingSlots)) {
+    return null;
+  }
+  return {
+    start: formattedstart,
+    end: formattedEnd,
+  };
+};
+
+export const isDayFullyBooked = (
+  existingSlots: { start: string; end: string }[]
+): boolean => {
+  return findNextAvailableSlot(existingSlots) === null;
+};
+
+export const canUpdateSlot = ({
+  time,
+  slot,
+  slotIndex,
+  slots,
+}: {
+  time: string;
+  slot: { start?: string; end?: string };
+  slotIndex: number;
+  slots: { start: string; end: string }[];
+}): boolean => {
+  const otherSlots = slots.filter((_, i) => i !== slotIndex);
+
+  // Allow the current value to be selected
+  if (slot.start === time) return true;
+
+  if (!slot.end) return false;
+
+  const isInvalid = isInvalidSlot(time, slot.end, otherSlots);
+  const startDate = parseTime(time);
+  const endDate = parseTime(slot.end);
+
+  const isValidTime = isAfter(endDate, startDate);
+
+  return !(isInvalid || !isValidTime);
+};
+
+export const canUpdateEndTime = ({
+  time,
+  slot,
+  slotIndex,
+  slots,
+}: {
+  time: string;
+  slot: { start?: string; end?: string };
+  slotIndex: number;
+  slots: { start: string; end: string }[];
+}): boolean => {
+  const otherSlots = slots.filter((_, i) => i !== slotIndex);
+
+  // Allow the current value to be selected
+  if (slot.end === time) return true;
+
+  if (!slot.start) return false;
+
+  const isInvalid = isInvalidSlot(slot.start, time, otherSlots);
+  const startDate = parseTime(slot.start);
+  const endDate = parseTime(time);
+
+  const isValidTime = isAfter(endDate, startDate);
+
+  return !(isInvalid || !isValidTime);
+};
+
+export const isInvalidSlot = (
+  newStart: string,
+  newEnd: string,
+  existingSlots: { start: string; end: string }[]
+): boolean => {
+
+  // {"start": "12:30 AM","end": "01:30 AM"}
+  const newStartDate = parseTime(newStart);
+  const newEndDate = parseTime(newEnd);
+
+  return existingSlots.some(slot => {
+    const slotStart = parseTime(slot.start);
+    const slotEnd = parseTime(slot.end);
+
+    const isDuplicate =
+      isEqual(newStartDate, slotStart) &&
+      isEqual(newEndDate, slotEnd);
+
+    const isOverlap =
+      isBefore(newStartDate, slotEnd) &&
+      isAfter(newEndDate, slotStart);
+    return isDuplicate || isOverlap;
+  });
+};

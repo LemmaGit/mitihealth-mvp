@@ -58,7 +58,7 @@ const PractitionerCard = ({ practitioner }: Props) => {
   };
 
   return (
-    <Card className="group flex flex-col shadow-botanical hover:shadow-lg h-full overflow-hidden transition-all duration-300">
+    <Card className="group flex flex-col shadow-botanical hover:shadow-lg h-full overflow-hidden transition-all duration-300" onClick={(e) => { e.stopPropagation(); navigate(`/patient/practitioner/${practitioner.id}`) }}>
       <PractitionerImage
         image={practitioner.profileImage! || practitioner.image}
         firstName={practitioner.firstName}
@@ -79,7 +79,7 @@ const PractitionerCard = ({ practitioner }: Props) => {
           <ExperienceBadge yearsExp={practitioner.yearsExp} />
         </div>
         
-        <div className="mt-4 pt-2">
+        <div className="mt-4 pt-2" onClick={(e) => e.stopPropagation()}>
           <BookButton
             practitionerId={practitioner.id}
             onBook={handleBook}

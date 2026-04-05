@@ -72,11 +72,16 @@ return practitionersWithClerk;
 
 export const findPractitionerById = async (id: string) => {
   const user = await clerkClient.users.getUser(id);
-  const practitioner = await Practitioner.findOne({
-  clerkId: id,
-});
+  const practitioner = await Practitioner.findOne({ clerkId: id });
 
-return {...practitioner, imageUrl: user.imageUrl,fullName:user.fullName};
+  if (!practitioner) return null;
+
+  const obj = practitioner.toObject(); 
+  return {
+    ...obj,
+    imageUrl: user.imageUrl,
+    fullName: user.fullName,
+  };
 };
 
 export const getPractitionerData = async (id: string) => {

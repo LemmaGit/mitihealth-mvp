@@ -135,7 +135,7 @@ export default function ProfessionalIdentity({ disabled = false }: { disabled?: 
                         !disabled && setValue(`consultationTypes.${type.key}.enabled`, !!checked, { shouldDirty: true })
                       }
                       disabled={disabled}
-                      className="data-[state=checked]:bg-primary border-primary"
+                      className="--data-[state=checked]:bg-primary border-primary"
                     />
                     <div>
                       <p className="font-medium text-foreground text-sm">{type.label}</p>

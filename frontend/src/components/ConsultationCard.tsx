@@ -26,7 +26,7 @@ function ConsultationCard({ c }: { c: any }) {
       if (c.consultationType === "chat") {
         window.location.assign(`/messages?roomId=${c._id}&practitionerId=${c.practitionerId}`);
       } else if (c.jitsiRoom) {
-        window.open(`https://meet.jit.si/${c.jitsiRoom}`, "_blank");
+        window.open(`https://meet.jit.si/${c.jitsiRoom}${c.consultationType === "audio" && "#config.startAudioOnly=true"}`, "_blank");
       }
     }
   });

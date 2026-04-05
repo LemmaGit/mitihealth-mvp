@@ -317,6 +317,7 @@ const MessagesPage = () => {
                       {roomSession.duration} minutes
                     </span>
                   </div>
+                  {/* TODO:This part needs to re render to show the remaining time so extract it to a component 👇 also after the button is clicked it should remove both of them from each others thread and navigate back*/}
                   <div className="flex items-center gap-3">
                     {roomSession.sessionInfo?.status === "active" && (
                       <span className="font-mono font-medium text-primary text-sm">

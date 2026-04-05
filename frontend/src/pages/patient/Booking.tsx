@@ -141,7 +141,7 @@ const Booking = () => {
 
   const { data: practitioner, isLoading } = useQuery({
     queryKey: ["patient", "practitioner", id],
-    queryFn: () => p.getPractitionerData(id!),
+    queryFn: () => p.getPractitioner(id!),
     enabled: !!id,
   });
 
@@ -296,14 +296,6 @@ const Booking = () => {
                     </p>
                   )}
                 </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="self-start sm:self-center shrink-0"
-                  onClick={() => navigate("/patient")}
-                >
-                  Change
-                </Button>
               </div>
             </CardContent>
           </Card>
