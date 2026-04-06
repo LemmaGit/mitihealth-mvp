@@ -17,7 +17,7 @@ export default function PatientConsultations() {
   });
 
   const activeConsultations = useMemo(() => {
-    return (consultations as any[]).filter(c => c.status === "booked" || c.status === "active");
+    return (consultations as any[]).filter(c => c.status === "active");
   }, [consultations]);
 
   const sortedConsultations = useMemo(() => {

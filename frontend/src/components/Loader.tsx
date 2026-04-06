@@ -1,11 +1,26 @@
 import type { ReactNode } from "react";
+import { cn } from "../lib/utils";
 
-function Loader({isFullPage=false,children}: {isFullPage?: boolean,children: ReactNode}) {
+function Loader({
+  isFullPage = false,
+  className,
+  children,
+}: {
+  isFullPage?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className={`flex ${isFullPage ? "h-screen" : "h-full"} items-center justify-center`}>
-        {children}
+    <div
+      className={cn(
+        "flex items-center justify-center bg-background",
+        isFullPage ? "fixed inset-0 z-9999 h-screen w-screen" : "relative min-h-[400px] w-full",
+        className
+      )}
+    >
+      {children}
     </div>
-  )
+  );
 }
 
-export default Loader
+export default Loader;

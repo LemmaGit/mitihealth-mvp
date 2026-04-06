@@ -1,15 +1,20 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useAppApi } from "../hooks/useAppApi";
 import { cn, getInitials, getSessionDate, getTimeText } from "../lib/utils";
 import { differenceInMinutes } from "date-fns";
 import { Card, CardContent } from "./ui/card";
 import { Avatar,AvatarFallback, AvatarImage } from "./ui/avatar";
 import { PRACTITIONER_PLACEHOLDER_IMG } from "../lib/practitionerDisplay";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, X } from "lucide-react";
 import { Button } from "./ui/button";
 
 function ConsultationCard({ c }: { c: any }) {
   const { common, patient } = useAppApi();
+  const queryClient = useQueryClient();
+  const [isJitsiOpen, setIsJitsiOpen] = useState(false);
+  
   const { data: practitioner } = useQuery({
     queryKey: ["patient", "practitioner", c.practitionerId],
     queryFn: () => common.getPractitioner(c.practitionerId),
@@ -20,13 +25,21 @@ function ConsultationCard({ c }: { c: any }) {
   const timeText = getTimeText(sessionDate);
   const minsLeft = differenceInMinutes(sessionDate, new Date());
   
+  const completeSessionMutation = useMutation({
+    mutationFn: () => patient.completeConsultation(c._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patient", "consultations"] });
+      setIsJitsiOpen(false);
+    }
+  });
+
   const startSessionMutation = useMutation({
     mutationFn: () => patient.startConsultation(c._id),
     onSuccess: () => {
       if (c.consultationType === "chat") {
         window.location.assign(`/messages?roomId=${c._id}&practitionerId=${c.practitionerId}`);
       } else if (c.jitsiRoom) {
-        window.open(`https://meet.jit.si/${c.jitsiRoom}${c.consultationType === "audio" && "#config.startAudioOnly=true"}`, "_blank");
+        setIsJitsiOpen(true);
       }
     }
   });
@@ -40,21 +53,30 @@ function ConsultationCard({ c }: { c: any }) {
     if (c.status === "completed") {
       return { text: "Session Completed", disabled: true };
     }
+    
+    // Auto-transition UI if active but time has run out
+    if (c.status === "active" && c.sessionEndTime) {
+       const endTimePassed = new Date() >= new Date(c.sessionEndTime);
+       if(endTimePassed) {
+         return { text: "Session Completed", disabled: true };
+       }
+    }
+    
     if (c.status === "active") {
-        //TODO: here instead of checking the status check the time left in the session and have a mutator here to change the status of the consultation if it says active
+      // If session hasn't started yet (no sessionEndTime), check if it's too early
+      if (!c.sessionEndTime && minsLeft > 0) {
+        return { text: "Not Yet", disabled: true };
+      }
       return { text: "Join Session", disabled: false };
     }
-    // For booked sessions
-    if (minsLeft > 0) {
-      return { text: "Not Yet", disabled: true };
-    }
+    
     return { text: "Begin Now", disabled: false };
   };
   
   const buttonState = getButtonState();
 
   
-
+console.log(c,"----")
   return (
     <Card className="shadow-sm hover:shadow-botanical border-border/60 hover:border-primary/20 transition-all">
       <CardContent className="flex flex-col space-y-4 p-5 h-full">
@@ -100,6 +122,46 @@ function ConsultationCard({ c }: { c: any }) {
           </Button>
         </div>
       </CardContent>
+
+      {isJitsiOpen && (
+        <div className="fixed inset-0 z-9999 bg-background flex flex-col">
+          <div className="bg-primary/5 border-b flex items-center justify-between px-4 py-2">
+            <div className="font-semibold text-primary">MitiHealth Consultation</div>
+            <Button variant="ghost" size="sm" onClick={() => completeSessionMutation.mutate()}>
+              <X className="mr-2 size-4" /> Close Session
+            </Button>
+          </div>
+          <div className="flex-1 w-full relative">
+            <JitsiMeeting
+              domain="meet.jit.si"
+              roomName={c.jitsiRoom}
+              configOverwrite={{
+                startAudioOnly: c.consultationType === "audio",
+                startWithAudioMuted: false,
+                disableModeratorIndicator: true,
+                startScreenSharing: false,
+                enableEmailInStats: false
+              }}
+              interfaceConfigOverwrite={{
+                DISABLE_JOIN_LEAVE_NOTIFICATIONS: true
+              }}
+              onApiReady={(externalApi) => {
+                externalApi.addListener('videoConferenceLeft', () => {
+                  completeSessionMutation.mutate();
+                });
+                externalApi.addListener('readyToClose', () => {
+                  completeSessionMutation.mutate();
+                });
+              }}
+              getIFrameRef={(iframeRef) => {
+                iframeRef.style.height = '100%';
+                iframeRef.style.width = '100%';
+                iframeRef.style.border = 'none';
+              }}
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

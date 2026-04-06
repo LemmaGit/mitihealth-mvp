@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useClerk } from "@clerk/react";
 import { useAuthStore } from "../../store/useAuthStore";
 
-function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string, icon: any}[]}) {
+function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string, icon: any; end?: boolean}[]}) {
    const { authUser } = useAuthStore();
    const { signOut } = useClerk()
 
@@ -20,6 +20,7 @@ function MainSidebar({sidebarItems}: {sidebarItems: {label: string, href: string
             <NavLink
               key={item.label}
               to={item.href}
+              end={item.end}
               className={({ isActive }) => 
                 `flex items-center gap-3 hover:bg-muted px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground text-sm transition-colors ${
                   isActive ? "bg-muted text-foreground" : ""

@@ -1,3 +1,4 @@
+import { clerkClient } from "@clerk/express";
 import { Consultation } from "../models/consultation.model";
 import { Order } from "../models/order.model";
 import { Practitioner } from "../models/Practitioner.model";
@@ -35,7 +36,27 @@ export const verifyProductStatus = async (productId: string, status: unknown) =>
 };
 
 export const listAllUsers = async () => {
-  return User.find({});
+  const users = await User.find({});
+
+  const userWithProfileImage = await Promise.all(
+    users.map(async (user) => {
+      try {
+        const clerkUser = await clerkClient.users.getUser(user.clerkId);
+
+        return {
+          ...user.toObject(),
+          imageUrl: clerkUser.imageUrl,
+        };
+      } catch (err) {
+        return {
+          ...user.toObject(),
+          imageUrl: null,
+        };
+      }
+    })
+  );
+
+  return userWithProfileImage;
 };
 
 export const listAllPractitioners = async () => {

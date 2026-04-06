@@ -145,6 +145,11 @@ const Booking = () => {
     enabled: !!id,
   });
 
+  const { data: patientConsultations } = useQuery({
+    queryKey: ["patient", "consultations"],
+    queryFn: () => patient.getMyConsultations(),
+  });
+
 
   const bookableDates = useMemo(
     () => bookableDatesFromAvailability(practitioner?.availability),
@@ -179,8 +184,53 @@ const Booking = () => {
   const rawSlots = selectedDateEntry?.slots ?? [];
   
   const slots = useMemo(() => {
-    return generateSubSlots(rawSlots, TYPE_META[consultationType].duration);
-  }, [rawSlots, consultationType]);
+    let subSlots = generateSubSlots(rawSlots, TYPE_META[consultationType].duration);
+
+    if (!selectedDateEntry) return subSlots;
+    
+    // Check if selected date is today in UTC+3 (EAT)
+    const nowLocal = new Date();
+    const utc = nowLocal.getTime() + (nowLocal.getTimezoneOffset() * 60000);
+    const nowEAT = new Date(utc + (3600000 * 3));
+    
+    const isToday =
+      selectedDateEntry.date.getDate() === nowLocal.getDate() &&
+      selectedDateEntry.date.getMonth() === nowLocal.getMonth() &&
+      selectedDateEntry.date.getFullYear() === nowLocal.getFullYear();
+    
+    // Filter past times
+    if (isToday) {
+      const currentMins = nowEAT.getHours() * 60 + nowEAT.getMinutes();
+      subSlots = subSlots.filter((slot) => {
+        const [startStr, startAmpm] = slot.start.split(" ");
+        const [shRaw, sm] = startStr.split(":").map(Number);
+        let sh = shRaw;
+        if (startAmpm === "PM" && sh !== 12) sh += 12;
+        if (startAmpm === "AM" && sh === 12) sh = 0;
+        const slotStartMins = sh * 60 + sm;
+        
+        return slotStartMins > currentMins;
+      });
+    }
+
+    // Filter scheduled slots
+    if (practitioner && 'activeSlots' in practitioner && Array.isArray(practitioner.activeSlots)) {
+      subSlots = subSlots.filter(slot => {
+        const slotTimeStr = `${slot.start}-${slot.end}`;
+        return !practitioner.activeSlots.some((bs: any) => {
+          const bsDate = new Date(bs.date);
+          return (
+            bsDate.getDate() === selectedDateEntry.date.getDate() &&
+            bsDate.getMonth() === selectedDateEntry.date.getMonth() &&
+            bsDate.getFullYear() === selectedDateEntry.date.getFullYear() &&
+            bs.time === slotTimeStr
+          );
+        });
+      });
+    }
+
+    return subSlots;
+  }, [rawSlots, consultationType, selectedDateEntry, practitioner]);
   
   const selectedSlot = slots[selectedSlotIndex];
 
@@ -189,8 +239,8 @@ const Booking = () => {
     return Number(practitioner.consultationTypes[consultationType]?.price ?? 0);
   }, [practitioner, consultationType]);
 
-  const serviceFee = PLATFORM_FEE_ETB;
-  const total = fee + serviceFee;
+  // const serviceFee = PLATFORM_FEE_ETB;
+  // const total = fee + serviceFee;
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -206,17 +256,31 @@ const Booking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patient", "consultations"] });
-      toast.success("Consultation booked. You can open it from Consultations.");
+      toast.success("Consultation scheduled. You can open it from Consultations.");
       navigate("/patient/consultations");
     },
     onError: (err: Error) =>
       toast.error(err.message || "Could not complete booking"),
   });
 
+  const hasConsultationOnSelectedDate = useMemo(() => {
+    if (!selectedDateEntry || !patientConsultations || !Array.isArray(patientConsultations)) return false;
+    return patientConsultations.some((c: any) => {
+      if (c.status === "completed" || c.status === "cancelled") return false;
+      const cDate = new Date(c.consultationDate);
+      return (
+        cDate.getDate() === selectedDateEntry.date.getDate() &&
+        cDate.getMonth() === selectedDateEntry.date.getMonth() &&
+        cDate.getFullYear() === selectedDateEntry.date.getFullYear()
+      );
+    });
+  }, [selectedDateEntry, patientConsultations]);
+
   const canBook =
     !!selectedDateEntry &&
     !!selectedSlot &&
-    enabledTypes.includes(consultationType);
+    enabledTypes.includes(consultationType) &&
+    !hasConsultationOnSelectedDate;
 
   const title = practitioner
     ? formatSpecialization(practitioner.specialization)
@@ -494,31 +558,37 @@ const Booking = () => {
               <div className="opacity-40 heritage-divider" />
 
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-muted-foreground">
                     Consultation fee
                   </span>
                   <span className="font-semibold">
                     {fee.toLocaleString()} ETB
                   </span>
-                </div>
-                <div className="flex justify-between">
+                </div> */}
+                {/* <div className="flex justify-between">
                   <span className="text-muted-foreground">
                     Platform service fee
                   </span>
                   <span className="font-semibold">
                     {serviceFee.toLocaleString()} ETB
                   </span>
-                </div>
+                </div> */}
                 <div className="flex justify-between items-end pt-3 border-border/40 border-t">
                   <span className="font-headline font-bold text-primary">
                     Total
                   </span>
                   <span className="font-headline font-bold text-primary text-2xl">
-                    {total.toLocaleString()} ETB
+                    {fee.toLocaleString()} ETB
                   </span>
                 </div>
               </div>
+              
+              {hasConsultationOnSelectedDate && (
+                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md font-medium border border-destructive/20 text-center">
+                  You already have a consultation scheduled on this date.
+                </div>
+              )}
 
               <Button
                 type="button"
@@ -540,21 +610,10 @@ const Booking = () => {
               <p className="text-[10px] text-muted-foreground text-center">
                 By booking, you agree to MitiHealth&apos;s clinical terms and
                 privacy policy. Payment collection may be added in a later
-                release; your session is reserved on submit.
+                release;
               </p>
             </CardContent>
           </Card>
-
-          {/* <Card className="bg-tertiary/10 mt-6 border-tertiary/20">
-            <CardContent className="flex gap-3 p-4">
-              <Leaf className="size-5 text-tertiary shrink-0" />
-              <p className="text-foreground/90 text-xs italic leading-relaxed">
-                <strong className="not-italic">Did you know?</strong> In Ethiopian
-                traditional medicine, consultations often begin with seasonal
-                context for optimal herbal efficacy.
-              </p>
-            </CardContent>
-          </Card> */}
         </aside>
       </div>
     </>

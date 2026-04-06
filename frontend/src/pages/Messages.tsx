@@ -70,8 +70,52 @@ function formatMessageTime(iso?: string) {
 }
 
 
-//TODO: also after the session is over the patient chat is deleted from the practitioner but the patractitioner stays with the patient delete from the patient too
-//TODO: Session ending tooks so long and also notify the other party that the other user has left the session
+// Separate component for the room session header to handle real-time timer updates
+const RoomSessionHeader = ({ roomSession }: { roomSession: any }) => {
+  const [timeLeft, setTimeLeft] = useState(roomSession.timeRemaining || 0);
+
+  useEffect(() => {
+    if (roomSession.sessionInfo?.status !== "active") return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev: number) => Math.max(0, prev - 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [roomSession.sessionInfo?.status]);
+
+  // Sync with prop if it updates from API
+  useEffect(() => {
+    setTimeLeft(roomSession.timeRemaining || 0);
+  }, [roomSession.timeRemaining]);
+
+  return (
+    <div className="flex justify-between items-center bg-primary/10 px-4 py-3 border-primary/20 border-b">
+      <div className="flex items-center gap-3">
+        <span className="font-semibold text-primary capitalize">
+          {roomSession.sessionType} Session
+        </span>
+        <span className="text-muted-foreground text-sm">
+          {roomSession.duration} minutes
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        {roomSession.sessionInfo?.status === "active" && (
+          <span className="font-mono font-medium text-primary text-sm">
+            {roomSession.formatTimeRemaining(timeLeft)}
+          </span>
+        )}
+        <button
+          onClick={roomSession.completeSession}
+          className="bg-destructive/10 hover:bg-destructive/20 px-3 py-1 rounded-lg text-destructive text-sm transition-colors"
+        >
+          End Session
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const MessagesPage = () => {
   const receiverId = useReceiverId();
   const { common } = useAppApi();
@@ -92,13 +136,6 @@ const MessagesPage = () => {
   const [mobilePanel, setMobilePanel] = useState<"list" | "thread">(
     actualReceiverId ? "thread" : "list",
   );
-  const [hiddenChats, setHiddenChats] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mitihealth_hidden_chats") || "[]");
-    } catch {
-      return [];
-    }
-  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -157,12 +194,12 @@ const MessagesPage = () => {
   });
 
   const displayUsers = useMemo(() => {
-    const users = (sidebarUsers as any[]).filter(u => !hiddenChats.includes(u.clerkId) || u.role === "admin");
+    const users = sidebarUsers as any[];
     const admin = users.find(u => u.role === "admin");
     const others = users.filter(u => u.role !== "admin");
     if (admin) return [admin, ...others];
     return others;
-  }, [sidebarUsers, hiddenChats]);
+  }, [sidebarUsers]);
 
   const sortedMessages = useMemo(() => {
     const list = [...(currentMessages as ApiMessage[])];
@@ -226,12 +263,12 @@ const MessagesPage = () => {
       const roomId = params.get("roomId");
       
       if (roomId && data.consultationId === roomId) {
-        queryClient.invalidateQueries({ queryKey: ["consultation", "status", roomId] });
-        
-        // If session was completed, redirect to consultations
+        // If session was completed, redirect to consultations and cleanup sidebar
         if (data.status === "completed") {
+          queryClient.invalidateQueries({ queryKey: ["sidebarUsers"] });
           setTimeout(() => {
-            window.location.href = `/${authUser?.unsafeMetadata?.role}`;
+             // Using window.location.assign if it's outside or navigate if we have it
+             window.location.href = `/${authUser?.unsafeMetadata?.role}`;
           }, 2000);
         }
       }
@@ -308,30 +345,7 @@ const MessagesPage = () => {
             ) : (
               <>
               {roomSession.isRoomSession && (
-                <div className="flex justify-between items-center bg-primary/10 px-4 py-3 border-primary/20 border-b">
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-primary capitalize">
-                      {roomSession.sessionType} Session
-                    </span>
-                    <span className="text-muted-foreground text-sm">
-                      {roomSession.duration} minutes
-                    </span>
-                  </div>
-                  {/* TODO:This part needs to re render to show the remaining time so extract it to a component 👇 also after the button is clicked it should remove both of them from each others thread and navigate back*/}
-                  <div className="flex items-center gap-3">
-                    {roomSession.sessionInfo?.status === "active" && (
-                      <span className="font-mono font-medium text-primary text-sm">
-                        {roomSession.formatTimeRemaining(roomSession.timeRemaining)}
-                      </span>
-                    )}
-                    <button
-                      onClick={roomSession.completeSession}
-                      className="bg-destructive/10 hover:bg-destructive/20 px-3 py-1 rounded-lg text-destructive text-sm transition-colors"
-                    >
-                      End Session
-                    </button>
-                  </div>
-                </div>
+                <RoomSessionHeader roomSession={roomSession} />
               )}
               <Main
                authUser={authUser} 

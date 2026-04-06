@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
 import Loader from "../../components/Loader";
-import { ClipLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import { toast } from "sonner";
 import PractitionerCard from "./components/PractitionerVerification/PractitionerCard";
 import PractitionerDetailModal from "./components/PractitionerVerification/PractitionerDetailModal";
@@ -47,7 +47,7 @@ export default function PractitionerVerification() {
   if (isPractitionersLoading || isUsersLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader isFullPage={false}><ClipLoader color="#004c22" /></Loader>
+        <Loader isFullPage={false}><HashLoader color="#166534" size={30} /></Loader>
       </div>
     );
   }

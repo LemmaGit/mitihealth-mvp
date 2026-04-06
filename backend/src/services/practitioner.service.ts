@@ -1,6 +1,7 @@
 import { clerkClient} from "@clerk/express";
 import { Practitioner } from "../models/Practitioner.model";
 import { createNotificationsForRole } from "./notification.service";
+import mongoose from "mongoose";
 
 const ALLOWED_VERIFICATION_STATUSES = ["pending", "approved", "rejected"] as const;
 
@@ -76,11 +77,26 @@ export const findPractitionerById = async (id: string) => {
 
   if (!practitioner) return null;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const Consultation = mongoose.model("Consultation");
+  
+  const futureConsultations = await Consultation.find({
+    practitionerId: id,
+    consultationDate: { $gte: today },
+    status: "active",
+  }).select("consultationDate consultationTime");
+
   const obj = practitioner.toObject(); 
   return {
     ...obj,
     imageUrl: user.imageUrl,
     fullName: user.fullName,
+    activeSlots: futureConsultations.map((c: any) => ({
+      date: c.consultationDate,
+      time: c.consultationTime,
+    })),
   };
 };
 

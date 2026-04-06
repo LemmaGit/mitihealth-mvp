@@ -1,10 +1,11 @@
 import { lazy } from "react";
-import { Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
+import { withSuspense } from "../helper/withSuspense";
 
-const SupplierInventory = lazy(() => import("../pages/supplier/Inventory"));
-const AddProduct = lazy(() => import("../pages/supplier/AddProduct"));
-const SupplierOrders = lazy(() => import("../pages/supplier/Orders"));
-const SupplierOrderDetail = lazy(() => import("../pages/supplier/OrderDetail"));
+const SupplierInventory = withSuspense(lazy(() => import("../pages/supplier/Inventory")));
+const AddProduct = withSuspense(lazy(() => import("../pages/supplier/AddProduct")));
+const SupplierOrders = withSuspense(lazy(() => import("../pages/supplier/Orders")));
+const SupplierOrderDetail = withSuspense(lazy(() => import("../pages/supplier/OrderDetail")));
 
 function SupplierRoutes() {
   return (
@@ -13,6 +14,7 @@ function SupplierRoutes() {
       <Route path="add-product" element={<AddProduct />} />
       <Route path="orders" element={<SupplierOrders />} />
       <Route path="orders/:id" element={<SupplierOrderDetail />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   )
 }

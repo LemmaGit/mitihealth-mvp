@@ -1,4 +1,4 @@
-import { StrictMode, Suspense } from "react";
+import { StrictMode} from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
@@ -7,8 +7,6 @@ import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from "@tans
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
 import { ErrorBoundary } from "react-error-boundary";
-import Loader from "./components/Loader";
-import { ClipLoader } from "react-spinners";
 import { AppErrorFallback } from "./components/AppErrorFallback";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -45,15 +43,7 @@ createRoot(document.getElementById("root")!).render(
           <QueryErrorResetBoundary>
             {({ reset }) => (
               <ErrorBoundary onReset={reset} FallbackComponent={AppErrorFallback}>
-                <Suspense
-                  fallback={
-                    <Loader isFullPage>
-                      <ClipLoader color="#004c22" />
-                    </Loader>
-                  }
-                >
                   <App />
-                </Suspense>
               </ErrorBoundary>
             )}
           </QueryErrorResetBoundary>

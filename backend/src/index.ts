@@ -6,7 +6,7 @@ import { clerkMiddleware } from "@clerk/express";
 import { app, server } from "./lib/socket";
 import { connectDb } from "./lib/db";
 import cron from "node-cron";
-import { checkAndCreateConsultationThreads } from "./services/consultation.service";
+import { checkAndCreateConsultationThreads, autoCompleteElapsedConsultations } from "./services/consultation.service";
 
 // Routers
 import webhookRouter from "./routes/webhook.route";
@@ -64,7 +64,8 @@ server.listen(PORT, async () => {
   cron.schedule('* * * * *', async () => {
     try {
       await checkAndCreateConsultationThreads();
-      console.log('📅 Checked for starting consultations');
+      await autoCompleteElapsedConsultations();
+      console.log('📅 Checked for starting and elapsed consultations');
     } catch (error) {
       console.error('❌ Error checking consultations:', error);
     }

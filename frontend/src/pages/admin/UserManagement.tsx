@@ -3,7 +3,7 @@ import { Users, Stethoscope, Package, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
 import Loader from "../../components/Loader";
-import { ClipLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import { getInitials } from "../../lib/utils";
 import UserStats from "./components/UserManagement/UserStats";
 import UserTable from "./components/UserManagement/UserTable";
@@ -30,19 +30,19 @@ export default function UserManagement() {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader isFullPage={false}>
-          <ClipLoader color="#004c22" />
+          <HashLoader size={30} color="#166534" />
         </Loader>
       </div>
     );
   }
-
+console.log(rawUsers)
   const users: UserEntry[] = rawUsers.map((u: any) => ({
     id: u.clerkId || u._id || Math.random().toString(),
     name: u.name || "Unknown User",
     role: u.role || "patient",
     dateJoined: new Date(u.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
     initials: getInitials(u.name || "Unknown"),
-    profilePicture: u.profilePicture,
+    profilePicture: u.imageUrl,
     status: u.isVerified ? "active" : "pending",
   }));
 

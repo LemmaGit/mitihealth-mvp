@@ -1,15 +1,16 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppApi } from "./useAppApi";
 import { useAuthStore } from "../store/useAuthStore";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAfter, parseISO } from "date-fns";
 
 function useRoomSession() {
   const navigate = useNavigate()
   const [params] = useSearchParams();
   const roomId = params.get("roomId");
-  const { patient, practitioner } = useAppApi();
+  const { patient, practitioner, common } = useAppApi();
   const { authUser } = useAuthStore();
+  const queryClient = useQueryClient();
   
   const { data: sessionInfo, isLoading } = useQuery({
     queryKey: ["consultation", "status", roomId],
@@ -40,9 +41,23 @@ function useRoomSession() {
       const api = authUser?.unsafeMetadata?.role === "practitioner" ? practitioner : patient;
       return api.completeConsultation(roomId);
     },
-    onSuccess: () => {
-        //TODO: handle deletion of message thread from both users
-      return navigate(`/${authUser?.unsafeMetadata?.role}`,{
+    onSuccess: async () => {
+      // Hide the conversation (cleanup thread)
+      const params = new URLSearchParams(window.location.search);
+      const receiverId = params.get("practitionerId") || params.get("receiverId") || params.get("userId");
+      
+      if (receiverId) {
+        try {
+          await common.hideConversation(receiverId);
+        } catch (error) {
+          console.error("Error hiding conversation:", error);
+        }
+      }
+
+      // Finalize the sidebar UI
+      queryClient.invalidateQueries({ queryKey: ["sidebarUsers"] });
+
+      return navigate(`/${authUser?.unsafeMetadata?.role}`, {
         replace: true
       });
     }

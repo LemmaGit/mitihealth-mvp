@@ -13,8 +13,8 @@ const ConsultationSchema = new mongoose.Schema({
   duration: { type: Number, required: true }, // in minutes
   status: { 
     type: String, 
-    enum: ["booked", "active", "completed"], 
-    default: "booked" 
+    enum: ["active", "completed"], 
+    default: "active" 
   },
   jitsiRoom: String, // for video/audio calls
   sessionStartTime: { type: Date }, // when session actually starts

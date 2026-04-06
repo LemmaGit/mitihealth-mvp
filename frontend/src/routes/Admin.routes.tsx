@@ -1,8 +1,10 @@
 import { lazy } from "react";
-import { Route, Routes } from "react-router-dom"
-const UserManagement = lazy(() => import("../pages/admin/UserManagement"));
-const PractitionerVerification = lazy(() => import("../pages/admin/PractitionerVerification"));
-const ProductVerification = lazy(() => import("../pages/admin/ProductVerification"));
+import { Navigate, Route, Routes } from "react-router-dom"
+import { withSuspense } from "../helper/withSuspense";
+
+const UserManagement = withSuspense(lazy(() => import("../pages/admin/UserManagement")));
+const PractitionerVerification = withSuspense(lazy(() => import("../pages/admin/PractitionerVerification")));
+const ProductVerification = withSuspense(lazy(() => import("../pages/admin/ProductVerification")));
 
 function AdminRoutes() {
   return (
@@ -11,6 +13,7 @@ function AdminRoutes() {
       <Route index element={<UserManagement />} />
       <Route path="practitioner-verification" element={<PractitionerVerification />} />
       <Route path="product-verification" element={<ProductVerification />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>   
   )
 }

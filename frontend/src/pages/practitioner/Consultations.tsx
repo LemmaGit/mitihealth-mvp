@@ -2,11 +2,12 @@ import { useMemo, useState, useEffect } from "react";
 import { useAppApi } from "../../hooks/useAppApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { differenceInMinutes } from "date-fns";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import { MessageCircle, Phone, Video, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
-import { Avatar, AvatarFallback } from "../../components/ui/avatar";
-import { cn, getSessionDate, getTimeText } from "../../lib/utils";
+import { MessageCircle, Phone, Video, CalendarClock, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
+import { cn, getInitials, getSessionDate, getTimeText } from "../../lib/utils";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "sonner";
 
@@ -18,16 +19,27 @@ const TYPE_ICONS: Record<string, any> = {
 
 function PractitionerConsultationCard({ c }: { c: any }) {
   const { practitioner } = useAppApi();
+  const queryClient = useQueryClient();
+  const [isJitsiOpen, setIsJitsiOpen] = useState(false);
   const sessionDate = getSessionDate(c.consultationDate, c.consultationTime);
   const minsLeft = differenceInMinutes(sessionDate, new Date());
   
+  const completeSessionMutation = useMutation({
+    mutationFn: () => practitioner.completeConsultation(c._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["practitioner", "consultations"] });
+      setIsJitsiOpen(false);
+    }
+  });
+
   const startSessionMutation = useMutation({
     mutationFn: () => practitioner.startConsultation(c._id),
     onSuccess: () => {
       if (c.consultationType === "chat") {
+        //TODO use navigate
         window.location.assign(`/messages?roomId=${c._id}&receiverId=${c.patientId}`);
       } else if (c.jitsiRoom) {
-        window.open(`https://meet.jit.si/${c.jitsiRoom}`, "_blank");
+        setIsJitsiOpen(true);
       }
     }
   });
@@ -41,13 +53,23 @@ function PractitionerConsultationCard({ c }: { c: any }) {
     if (c.status === "completed") {
       return { text: "Session Completed", disabled: true };
     }
+    
+    // Auto-transition UI if active but time has run out
+    if (c.status === "active" && c.sessionEndTime) {
+       const endTimePassed = new Date() >= new Date(c.sessionEndTime);
+       if(endTimePassed) {
+         return { text: "Session Completed", disabled: true };
+       }
+    }
+    
     if (c.status === "active") {
+      // If session hasn't started yet (no sessionEndTime), check if it's too early
+      if (!c.sessionEndTime && minsLeft > 0) {
+        return { text: "Not Yet", disabled: true };
+      }
       return { text: "Join Session", disabled: false };
     }
-    // For booked sessions
-    if (minsLeft > 0) {
-      return { text: "Not Yet", disabled: true };
-    }
+    
     return { text: "Begin Now", disabled: false };
   };
   
@@ -55,21 +77,23 @@ function PractitionerConsultationCard({ c }: { c: any }) {
   const timeText = getTimeText(sessionDate);
   
   const Icon = TYPE_ICONS[c.consultationType] || MessageCircle;
-  const title = "Patient Session"; 
-  const initials = "PS";
-
+  console.log(c)
   return (
     <Card className="shadow-sm hover:shadow-botanical border-border/60 hover:border-primary/20 transition-all">
       <CardContent className="flex flex-col space-y-4 p-5 h-full">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="rounded-xl size-12 shrink-0">
+              <AvatarImage
+                        src={c.patientProfile.imageUrl}
+                        alt={c.patientProfile.fullName}
+                        />
               <AvatarFallback className="bg-primary/10 rounded-xl font-bold text-primary text-sm">
-                {initials}
+                {getInitials(c.patientProfile.fullName)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 truncate">
-              <h3 className="font-headline font-semibold text-foreground truncate">{title}</h3>
+              <h3 className="font-headline font-semibold text-foreground truncate">{c.patientProfile.fullName}</h3>
               <p className="flex items-center gap-1 mt-0.5 text-muted-foreground text-xs capitalize">
                 <Icon className="size-3" />
                 {c.consultationType} session
@@ -102,6 +126,46 @@ function PractitionerConsultationCard({ c }: { c: any }) {
           </Button>
         </div>
       </CardContent>
+
+      {isJitsiOpen && (
+        <div className="fixed inset-0 z-9999 bg-background flex flex-col">
+          <div className="bg-primary/5 border-b flex items-center justify-between px-4 py-2">
+            <div className="font-semibold text-primary">MitiHealth Consultation</div>
+            <Button variant="ghost" size="sm" onClick={() => completeSessionMutation.mutate()}>
+              <X className="mr-2 size-4" /> Close Session
+            </Button>
+          </div>
+          <div className="flex-1 w-full relative">
+            <JitsiMeeting
+              domain="meet.jit.si"
+              roomName={c.jitsiRoom}
+              configOverwrite={{
+                startAudioOnly: c.consultationType === "audio",
+                startWithAudioMuted: false,
+                disableModeratorIndicator: true,
+                startScreenSharing: false,
+                enableEmailInStats: false
+              }}
+              interfaceConfigOverwrite={{
+                DISABLE_JOIN_LEAVE_NOTIFICATIONS: true
+              }}
+              onApiReady={(externalApi) => {
+                externalApi.addListener('videoConferenceLeft', () => {
+                  completeSessionMutation.mutate();
+                });
+                externalApi.addListener('readyToClose', () => {
+                  completeSessionMutation.mutate();
+                });
+              }}
+              getIFrameRef={(iframeRef) => {
+                iframeRef.style.height = '100%';
+                iframeRef.style.width = '100%';
+                iframeRef.style.border = 'none';
+              }}
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
@@ -116,7 +180,6 @@ export default function Consultations() {
     queryKey: ["practitioner", "consultations"],
     queryFn: () => practitioner.getMyConsultations(),
   });
-
   // Listen for new consultation bookings
   useEffect(() => {
     if (!socket) return;
@@ -147,7 +210,7 @@ export default function Consultations() {
   }, [socket, authUser?.id, queryClient]);
 
   const activeConsultations = useMemo(() => {
-    return (consultations as any[]).filter(c => c.status === "booked" || c.status === "active");
+    return (consultations as any[]).filter(c => c.status === "active");
   }, [consultations]);
 
   const sortedConsultations = useMemo(() => {

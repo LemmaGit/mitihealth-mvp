@@ -25,6 +25,7 @@ export default function PractitionerProfile() {
     enabled: !!user?.id,
   });
 
+
    const methods = useForm<ProfileFormValues>({
     resolver: zodResolver(practitionerProfileSchema) as any,
     defaultValues: existing || defaultValuesObj,

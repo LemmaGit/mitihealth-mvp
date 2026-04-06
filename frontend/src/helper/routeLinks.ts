@@ -10,13 +10,13 @@ import {
 } from "lucide-react";
 
 const supplierSidebarItems = [
-  { label: "Inventory", icon: ClipboardList, href: "/supplier" },
+  { label: "Inventory", icon: ClipboardList, href: "/supplier", end: true },
   { label: "Orders", icon: Calendar, href: "/supplier/orders" },
   { label: "Messages", icon: MessageSquare, href: "/messages" },
 ];
 
 const practitionerSidebarItems = [
-  { label: "Consultations", icon: Calendar, href: "/practitioner" },
+  { label: "Consultations", icon: Calendar, href: "/practitioner", end: true },
   { label: "Messages", icon: MessageSquare, href: "/messages" },
   { label: "Profile", icon: UserRoundCog, href: "/practitioner/profile" },
 ];
@@ -38,7 +38,7 @@ const patientSidebarItems = [
   { label: "Cart", icon: ShoppingCart, href: "/patient/cart" },
 ];
 
-export const links: Record<string, { label: string; href: string; icon: any }[]> = {
+export const links: Record<string, { label: string; href: string; icon: any; end?: boolean }[]> = {
   supplier: supplierSidebarItems,
   practitioner: practitionerSidebarItems,
   admin: adminSidebarItems,

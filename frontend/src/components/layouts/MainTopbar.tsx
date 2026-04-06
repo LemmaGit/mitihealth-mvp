@@ -143,8 +143,15 @@ function MainTopbar() {
                 <NavLink
                   key={item.href}
                   to={item.href}
+                  end={item.end}
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 hover:bg-white/20 dark:hover:bg-gray-800/50 p-3 rounded-xl w-full text-muted-foreground transition-colors"
+                  className={({ isActive }) => 
+                    `flex items-center gap-3 p-3 rounded-xl w-full transition-colors ${
+                      isActive 
+                        ? "bg-primary/10 text-primary font-semibold" 
+                        : "text-muted-foreground hover:bg-white/20 dark:hover:bg-gray-800/50"
+                    }`
+                  }
                 >
                   <item.icon size={18} />
                   <span>{item.label}</span>

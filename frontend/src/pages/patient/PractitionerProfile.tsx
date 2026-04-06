@@ -4,9 +4,8 @@ import { CheckCircle, FileText, MapPin, ArrowRight, Shield, Clock, Calendar } fr
 import { useQuery } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
 import { yearsPracticing } from "@/lib/practitionerDisplay";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent,CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 const PractitionerProfile = () => {
   const { id } = useParams();
@@ -20,7 +19,6 @@ const PractitionerProfile = () => {
     queryFn: () => common.getPractitioner(id!),
     enabled: !!id,
   });
-  console.log(practitioner)
   const availability = useMemo(() => (Array.isArray(practitioner?.availability) ? practitioner.availability : []), [practitioner]);
   // const selectedDay = availability[selectedDayIndex];
   //TODO: here only handle practitioner not available the loading will be handled by a global component
@@ -186,7 +184,7 @@ const PractitionerProfile = () => {
                           setSelectedDaySlots(day.slots);
                         
                       }}
-                      className={`flex-1 flex-col h-auto py-2 rounded-lg border text-center transition-colors ${
+                      className={`min-w-20 --flex-1 flex-col h-auto py-2 rounded-lg border text-center transition-colors ${
                         selectedDayIndex === i
                           ? "bg-primary text-primary-foreground"
                           : "bg-surface-container-low hover:bg-surface-container text-foreground cursor-pointer"
@@ -221,7 +219,7 @@ const PractitionerProfile = () => {
                 </div>
               </div>
 
-              <button
+              {practitioner.availability.length &&<button
                 onClick={() =>
                   navigate(`/patient/booking/${practitioner?.clerkId}`)
                 }
@@ -229,7 +227,7 @@ const PractitionerProfile = () => {
               >
                 Book consultation
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </button>}
               <div className="mt-4 text-center">
                 <span className="flex justify-center items-center gap-1 text-[10px] text-muted-foreground">
                   <Shield className="w-3 h-3" />

@@ -18,19 +18,21 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 export default function WeeklyAvailability({ disabled = false }: { disabled?: boolean }) {
   const { watch, setValue } = useFormContext<ProfileFormValues>();
   const availability = mergeAvailability(defaultValuesObj.availability, watch("availability") || []); 
-  console.log(availability?.[0].slots,"👊")
 
   const toggleDay = (dayIndex: number) => {
     if (disabled) return;
-    const updated = [...availability];
-    updated[dayIndex].enabled = !updated[dayIndex].enabled;
-    if (updated[dayIndex].enabled && updated[dayIndex].slots.length === 0) {
-      updated[dayIndex].slots = [{ start: "09:00 AM", end: "05:00 PM" }];
-    } else if (!updated[dayIndex].enabled) {
-      updated[dayIndex].slots = [];
-    }
+    const updated = availability.map((day, i) => {
+      if (i !== dayIndex) return day;
+      const newEnabled = !day.enabled;
+      return {
+        ...day,
+        enabled: newEnabled,
+        slots: newEnabled && day.slots.length === 0 
+          ? [{ start: "09:00 AM", end: "05:00 PM" }] 
+          : newEnabled ? [...day.slots] : []
+      };
+    });
     setValue("availability", updated, { shouldDirty: true });
-    console.log("availability", updated);
   };
 
   const addSlot = (dayIndex: number) => {
@@ -57,25 +59,32 @@ export default function WeeklyAvailability({ disabled = false }: { disabled?: bo
       nextSlot.end = formatTime(attemptEnd);
     }
 
-    const updated = [...availability];
-    updated[dayIndex].slots.push(nextSlot);
+    const updated = availability.map((day, i) => {
+      if (i !== dayIndex) return day;
+      return {
+        ...day,
+        slots: [...day.slots, nextSlot]
+      };
+    });
+    
     setValue("availability", updated, { shouldDirty: true });
   };
 
   const removeSlot = (dayIndex: number, slotIndex: number) => {
     if (disabled) return;
-    const updated = [...availability];
-    updated[dayIndex].slots.splice(slotIndex, 1);
-    console.log(updated?.[0].slots,"****");
+    const updated = availability.map((day, i) => {
+      if (i !== dayIndex) return day;
+      const newSlots = [...day.slots];
+      newSlots.splice(slotIndex, 1);
+      return {
+        ...day,
+        slots: newSlots,
+        enabled: newSlots.length === 0 ? false : day.enabled
+      };
+    });
     
-    if (updated[dayIndex].slots.length === 0) {
-      updated[dayIndex].enabled = false;
-    }
-    console.log(watch("availability")?.[0].slots,"@@@@@");
-  
+    // console.log("Calling setValue in removeSlot:", JSON.parse(JSON.stringify(updated[dayIndex].slots)));
     setValue("availability", updated, { shouldDirty: true });
-    console.log(watch("availability")?.[0].slots,"&&&&&");
-    
   };
 
   const updateSlot = (
@@ -84,12 +93,11 @@ export default function WeeklyAvailability({ disabled = false }: { disabled?: bo
     field: "start" | "end",
     value: string
   ) => {
+    console.log("updateSlot called", { dayIndex, slotIndex, field, value });
     if (disabled) return;
 
-    const updated = [...availability];
-    const currentSlot = updated[dayIndex].slots[slotIndex];
-    const otherSlots = updated[dayIndex].slots.filter((_, i) => i !== slotIndex);
-
+    const currentSlot = availability[dayIndex].slots[slotIndex];
+    const otherSlots = availability[dayIndex].slots.filter((_, i) => i !== slotIndex);
     const newSlot = { ...currentSlot, [field]: value };
 
     if (newSlot.start && newSlot.end) {
@@ -97,11 +105,19 @@ export default function WeeklyAvailability({ disabled = false }: { disabled?: bo
       const endDate = parseTime(newSlot.end);
 
       if (isBefore(endDate, startDate) || isEqual(endDate, startDate)) return;
-
       if (isInvalidSlot(newSlot.start, newSlot.end, otherSlots)) return;
     }
 
-    updated[dayIndex].slots[slotIndex] = newSlot;
+    const updated = availability.map((day, i) => {
+      if (i !== dayIndex) return day;
+      const newSlots = [...day.slots];
+      newSlots[slotIndex] = newSlot;
+      return {
+        ...day,
+        slots: newSlots
+      };
+    });
+
     setValue("availability", updated, { shouldDirty: true });
   };
 
@@ -125,9 +141,11 @@ export default function WeeklyAvailability({ disabled = false }: { disabled?: bo
             {day.enabled && day.slots.length > 0 ? (
               day.slots
                 .filter(slot => slot.start && slot.end && slot.start !== "" && slot.end !== "")
-                .map((slot, slotIndex) => (
+                .map((slot, slotIndex) => {
+                  const uniqueKey = `${dayIndex}-${slotIndex}-${slot.start || "empty"}-${slot.end || "empty"}`;
+                  return (
                 <div
-                  key={slotIndex}
+                  key={uniqueKey}
                   className={`flex flex-wrap items-center gap-3 rounded-lg bg-muted/30 px-4 py-3 ${slotIndex > 0 ? "mt-2 ml-4 border-l-2 border-primary/20 sm:ml-[120px]" : ""}`}
                 >
                   {slotIndex === 0 && (
@@ -227,7 +245,8 @@ export default function WeeklyAvailability({ disabled = false }: { disabled?: bo
                     <div className="w-7 h-7" />
                   )}
                 </div>
-              ))
+              );
+              })
             ) : (
               <div className="flex items-center gap-3 bg-muted/20 px-4 py-3 rounded-lg">
                 <Checkbox

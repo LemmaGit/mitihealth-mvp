@@ -1,11 +1,9 @@
 import status from "http-status";
 import { Message } from "../models/message.model";
 import { User } from "../models/User.model";
-import { HiddenConversation } from "../models/hiddenConversation.model";
 import { Conversation } from "../models/conversation.model";
 import { sendMessageService } from "../services/message.service";
 import catchAsync from "../utils/catchAsync";
-import {clerkClient} from "@clerk/express"
 import { getClerkUsers } from "../utils/helpers";
 
 export const getUsersForSidebar = catchAsync(async (req, res) => {
@@ -82,10 +80,25 @@ export const hideConversation = catchAsync(async (req, res) => {
   //@ts-ignore  
   const loggedInUserId = req.userId;
     
-  // Remove conversation from both users' conversation lists
-  const userIds = [loggedInUserId, userId].filter((id): id is string => Boolean(id));
-  await Conversation.deleteMany({
-    "participants.userId": { $in: userIds }
+  // Remove the specific conversation shared by both users
+  await Conversation.findOneAndDelete({
+    participants: {
+      $all: [
+        { $elemMatch: { userId: loggedInUserId } },
+        { $elemMatch: { userId: userId } }
+      ],
+      $size: 2
+    }
+  });
+  
+  // Also delete associated messages? Let's keep them in the Message collection 
+  // but they won't be reachable since the Conversation is gone from the sidebar.
+  // Actually, delete the messages too to fulfill "remove both from each other's thread"
+  await Message.deleteMany({
+    $or: [
+      { senderId: loggedInUserId, receiverId: userId },
+      { senderId: userId, receiverId: loggedInUserId }
+    ]
   });
     
   res.status(status.OK).json({ message: "Conversation hidden successfully" });

@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppApi } from "../../hooks/useAppApi";
 import { useAuth } from "@clerk/react";
 import Loader from "../../components/Loader";
-import { ClipLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import { toast } from "sonner";
 
 export default function SupplierInventory() {
@@ -72,7 +72,7 @@ export default function SupplierInventory() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[50vh]">
-        <Loader isFullPage={false}><ClipLoader color="#004c22" /></Loader>
+        <Loader isFullPage={false}><HashLoader color="#166534" size={30} /></Loader>
       </div>
     );
   }
