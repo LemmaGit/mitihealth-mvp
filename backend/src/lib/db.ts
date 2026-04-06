@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export const connectDb = async () => {
 
-  const mongoUri = process.env.MONGO_LOCAL_URI;
+  const mongoUri = process.env.MONGO_REMOTE_URI;
 
   if (!mongoUri) {
     throw new Error("MONGODB_URI is not defined");
