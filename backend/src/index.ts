@@ -33,7 +33,14 @@ app.use(
 );
 
 // Middlewares
-app.use(cors({ origin: ["https://mitihealth.me", "http://localhost:5173"] }));
+app.use(cors({
+  origin: [
+    "https://mitihealth.me",
+    "https://www.mitihealth.me",
+    "http://localhost:5173"
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(syncUser)
@@ -58,20 +65,16 @@ app.use(errorConverter);
 app.use(errorHandler);
 server.listen(PORT, async () => {
   await connectDb();
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
   
   // Schedule consultation thread creation check every minute
   cron.schedule('* * * * *', async () => {
     try {
       await checkAndCreateConsultationThreads();
       await autoCompleteElapsedConsultations();
-      console.log('📅 Checked for starting and elapsed consultations');
     } catch (error) {
       console.error('❌ Error checking consultations:', error);
     }
   });
-  
-  console.log('⏰ Consultation scheduler started');
 });
 
 const exitHandler = () => {
