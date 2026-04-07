@@ -39,6 +39,7 @@ export const apiClient = async (
     response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
   } catch (error) {
     throw new NetworkError("Failed to reach server. Please try again.", error);
