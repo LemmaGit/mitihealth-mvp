@@ -33,8 +33,18 @@ const allowedOrigins = [
   "http://127.0.0.1:5173"
 ];
 
+const allowedHeaders = [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With", 
+    "Accept",
+    "X-App-Version",
+    "Baggage",       
+    "Sentry-Trace"   
+  ]
+
 // Middlewares
-app.use(cors({
+/*app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -57,8 +67,17 @@ app.use(cors({
     "Baggage",       // Used by some tracing tools
     "Sentry-Trace"   // Used by Sentry if enabled
   ],
+}));*/
+
+app.use(cors({
+  origin: "https://mitihealth.me", 
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders,
+  optionsSuccessStatus: 204
 }));
 
+app.options('*', cors());
 
 app.use(
   "/api/webhooks",
