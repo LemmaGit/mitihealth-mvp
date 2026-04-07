@@ -37,6 +37,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       query: {
         userId: authUser.id, // Clerk user id
       },
+      transports: ["websocket"],
     });
 
     newSocket.on("getOnlineUsers", (userIds) => {
