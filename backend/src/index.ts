@@ -26,21 +26,28 @@ import { syncUser } from "./middlewares/syncUser";
 
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  "https://mitihealth.me",
+  "https://www.mitihealth.me",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173"
+];
+
+// Middlewares
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+}));
+
+
 app.use(
   "/api/webhooks",
   express.raw({ type: "application/json" }),
   webhookRouter,
 );
 
-// Middlewares
-app.use(cors({
-  origin: [
-    "https://mitihealth.me",
-    "https://www.mitihealth.me",
-    "http://localhost:5173"
-  ],
-  credentials: true,
-}));
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(syncUser)
