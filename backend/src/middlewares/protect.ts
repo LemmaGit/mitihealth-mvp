@@ -3,6 +3,9 @@ import { getAuth } from "@clerk/express";
 import ApiError from "../utils/ApiError";
 
 export const protect = (req: any, res: any, next: any) => {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
   const { userId } = getAuth(req);
   if (!userId) {
     return next(new ApiError(status.UNAUTHORIZED, status[status.UNAUTHORIZED]));

@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://mitihealth.me",
   "https://www.mitihealth.me",
+  "https://mitihealth-mvp.vercel.app/",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -44,37 +45,19 @@ const allowedHeaders = [
   ]
 
 // Middlewares
-/*app.use(cors({
+app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log(`CORS blocked for origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type", 
-    "Authorization", 
-    "X-Requested-With", 
-    "Accept",
-    "X-App-Version", // Sample custom header
-    "Baggage",       // Used by some tracing tools
-    "Sentry-Trace"   // Used by Sentry if enabled
-  ],
-}));*/
-
-app.use(cors({
-  origin: "https://mitihealth.me", 
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders,
-  optionsSuccessStatus: 204
+  allowedHeaders: allowedHeaders,
+  optionsSuccessStatus: 200,        
+  maxAge: 86400                     
 }));
 
 app.options(/.*/, cors());
