@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://mitihealth.me",
   "https://www.mitihealth.me",
-  "https://mitihealth-mvp.vercel.app/",
+  "https://mitihealth-mvp.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ];
@@ -60,7 +60,9 @@ app.use(cors({
   maxAge: 86400                     
 }));
 
-app.options(/.*/, cors());
+app.options(/.*/, (req, res) => {
+  res.status(204).end();
+});
 
 app.use(
   "/api/webhooks",
@@ -90,19 +92,30 @@ app.use((req, res, next) => {
 
 app.use(errorConverter);
 app.use(errorHandler);
-server.listen(PORT, async () => {
-  await connectDb();
-  
-  // Schedule consultation thread creation check every minute
-  cron.schedule('* * * * *', async () => {
-    try {
-      await checkAndCreateConsultationThreads();
-      await autoCompleteElapsedConsultations();
-    } catch (error) {
-      console.error('❌ Error checking consultations:', error);
-    }
-  });
-});
+const startServer = async () => {
+  try {
+    await connectDb();
+    
+    server.listen(PORT, () => {
+      console.log(`🚀 Server listening on port ${PORT}`);
+      
+      // Schedule consultation thread creation check every minute
+      cron.schedule('* * * * *', async () => {
+        try {
+          await checkAndCreateConsultationThreads();
+          await autoCompleteElapsedConsultations();
+        } catch (error) {
+          console.error('❌ Error checking consultations:', error);
+        }
+      });
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 const exitHandler = () => {
   if (server) {
