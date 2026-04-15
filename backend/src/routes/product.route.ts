@@ -17,12 +17,14 @@ import {
 import { upload } from "../lib/multer";
 import { uploadMultipleImages } from "../middlewares/uploadMultipleImages";
 import { protectRole } from "../middlewares/protectRole";
+import { protect } from "../middlewares/protect";
 
 const router = Router();
 
 // Supplier creates product
 router.post(
   "/",
+  protect,
   protectRole(["supplier"]),
   upload.array("images", 5),
   uploadMultipleImages,
@@ -31,18 +33,16 @@ router.post(
 );
 
 // Get all approved products (marketplace)
-router.get("/", getAllProducts);
-router.get("/verified", getAllVerifiedProducts);
-router.get("/:id",protectRole(["supplier"]), getSupplierProductsAndStats);
+router.get("/",protect,  getAllProducts);
+router.get("/verified",protect, getAllVerifiedProducts);
+router.get("/:id",protect,protectRole(["supplier"]), getSupplierProductsAndStats);
 
 // Admin verify product
-router.patch("/:id/verify",protectRole(["admin"]), validate(ProductVerificationSchemaZod), verifyProduct);
+router.patch("/:id/verify",protect,protectRole(["admin"]), validate(ProductVerificationSchemaZod), verifyProduct);
 
-// Supplier updates own product (verificationStatus is admin-only)
-// In the form we will make sure if it is dirty meaning if there is something that is changed
-// and only then we request for an update
 router.patch(
   "/:id",
+  protect,
   protectRole(["supplier"]),
   upload.array("images", 5),
   uploadMultipleImages,

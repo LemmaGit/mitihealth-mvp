@@ -73,7 +73,7 @@ app.use(
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(syncUser)
-app.use(protect)
+// app.use(protect)
 
 
 // All API routes

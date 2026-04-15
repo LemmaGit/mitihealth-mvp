@@ -12,23 +12,23 @@ import {
   CreateOrderSchemaZod,
   UpdateOrderStatusSchemaZod,
 } from "../validations/order.validation";
+import { protect } from "../middlewares/protect";
 
 const router = Router();
 
 router.post(
   "/",
-  
+  protect,
   protectRole(["patient"]),
   validate(CreateOrderSchemaZod),
   createOrder,
 );
 
-router.get("/me",  protectRole(["patient"]), getMyOrder);
+router.get("/me", protect,  protectRole(["patient"]), getMyOrder);
 
 // Supplier: Get all orders for his products
 router.get(
-  "/supplier/me",
-  
+  "/supplier/me",protect,
   protectRole(["supplier"]),
   getMySupplierOrders,
 );
@@ -36,13 +36,14 @@ router.get(
 // Get order details
 router.get(
   "/:orderId",
-  
+  protect,
   getOrderDetails,
 );
 
 // Supplier: Update order status
 router.patch(
   "/:orderId/status",
+  protect,
   protectRole(["supplier"]),
   validate(UpdateOrderStatusSchemaZod),
   updateOrderStatusForSupplierHandler,

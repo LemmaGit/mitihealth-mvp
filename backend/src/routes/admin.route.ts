@@ -7,18 +7,19 @@ import {
   verifyPractitionerHandler,
   verifyProductHandler,
 } from "../controllers/admin.controller";
+import { protect } from "../middlewares/protect";
 
 const router = Router();
 
-router.use(protectRole(["admin"]));
+// router.use(protectRole(["admin"]));
 
-router.get("/practitioners", listPractitionersHandler);
-router.patch("/practitioners/:id/verify", verifyPractitionerHandler);
+router.get("/practitioners",protect,protectRole(["admin"]), listPractitionersHandler);
+router.patch("/practitioners/:id/verify",protect,protectRole(["admin"]), verifyPractitionerHandler);
 
-router.patch("/products/:id/verify", verifyProductHandler);
+router.patch("/products/:id/verify",protect,protectRole(["admin"]), verifyProductHandler);
 
-router.get("/users", listUsersHandler);
+router.get("/users",protect,protectRole(["admin"]), listUsersHandler);
 
-router.get("/analytics", analyticsHandler);
+router.get("/analytics",protect,protectRole(["admin"]), analyticsHandler);
 
 export default router;
