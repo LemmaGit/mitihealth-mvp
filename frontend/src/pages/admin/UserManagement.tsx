@@ -35,7 +35,6 @@ export default function UserManagement() {
       </div>
     );
   }
-console.log(rawUsers)
   const users: UserEntry[] = rawUsers.map((u: any) => ({
     id: u.clerkId || u._id || Math.random().toString(),
     name: u.name || "Unknown User",

@@ -22,15 +22,27 @@ export const uploadImage = (req: Request, folder = "herbs") =>
 export async function getClerkUsers(users: Array<{ clerkId: string; toObject(): any }>) {
   const usersWithClerkData = await Promise.all(
     users.map(async (user) => {
-      const clerkUser = await clerkClient.users.getUser(user.clerkId);
+      try {
+        const clerkUser = await clerkClient.users.getUser(user.clerkId);
 
-      return {
-        ...user.toObject(),
-        imageUrl: clerkUser.imageUrl,
-        email: clerkUser.emailAddresses[0]?.emailAddress,
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-      };
+        return {
+          ...user.toObject(),
+          imageUrl: clerkUser.imageUrl,
+          email: clerkUser.emailAddresses[0]?.emailAddress,
+          firstName: clerkUser.firstName,
+          lastName: clerkUser.lastName,
+        };
+      } catch (err) {
+        console.error("Clerk fetch failed:", user.clerkId);
+
+        return {
+          ...user.toObject(),
+          imageUrl: null,
+          email: null,
+          firstName: null,
+          lastName: null,
+        };
+      }
     })
   );
 
