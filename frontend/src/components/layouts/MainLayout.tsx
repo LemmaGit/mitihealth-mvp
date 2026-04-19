@@ -1,10 +1,8 @@
 import { Outlet } from "react-router-dom";
 import MainSidebar from "./MainSidebar";
 import MainTopbar from "./MainTopbar";
-import { PropagateLoader } from "react-spinners";
 import { links } from "../../helper/routeLinks";
 import { useAuthStore } from "../../store/useAuthStore";
-import { Suspense } from "react";
 
 function MainLayout() {
     const {authUser:user} = useAuthStore()
@@ -20,12 +18,7 @@ function MainLayout() {
         </main>
         <footer className="bg-card px-4 lg:px-8 py-4 border-border/15 border-t">
           <div className="flex sm:flex-row flex-col justify-between items-center gap-2 text-muted-foreground text-xs">
-            <span> 2026 MitiHealth Systems</span>
-            {/* <div className="flex gap-4">
-              <span>COMPLIANCE</span>
-              <span>PRIVACY</span>
-              <span>TERMS</span>
-            </div> */}
+            <span> {new Date().getFullYear()} MitiHealth Systems</span>
           </div>
         </footer>
       </div>

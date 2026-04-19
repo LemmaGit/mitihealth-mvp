@@ -1,4 +1,4 @@
-import { ArrowLeftIcon,Loader2 } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn, getInitials } from "../../lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 
 const Main = ({
     isPending,
-    messagesLoading,
     sortedMessages,
     authUser,
     receiverImage,
@@ -18,21 +17,17 @@ const Main = ({
     const navigate = useNavigate()
     return (
         <ScrollArea className="relative flex-1 bg-[radial-gradient(hsl(var(--border))_1px,transparent_1px)] background-size-[24px_24px] overflow-y-auto">
-            <Button className="top-2 left-2 z-50 absolute flex justify-center items-center --bg-gray-400 backdrop-blur-2xl rounded-full w-8 h-8" onClick={()=>{navigate("/messages")}}>
+            <Button className="top-2 left-2 z-20 absolute flex justify-center items-center --bg-gray-400 backdrop-blur-2xl rounded-full w-8 h-8" onClick={()=>{navigate("/messages")}}>
                 <ArrowLeftIcon color="#fff"/>
             </Button>
-                  <div className="space-y-6 p-6">
-                    {/* Date separator */}
-                    <div className="flex justify-center">
-                      <span className="bg-muted px-3 py-1 rounded-full font-bold text-[10px] text-muted-foreground uppercase tracking-widest">Today</span>
-                    </div>
+                  <div className="flex flex-col p-6 h-full min-h-[500px]">
+                    
+                      <div className="space-y-6">
+                        {/* Date separator */}
+                        <div className="flex justify-center">
+                          <span className="bg-muted px-3 py-1 rounded-full font-bold text-[10px] text-muted-foreground uppercase tracking-widest">Today</span>
+                        </div>
 
-                    {messagesLoading ? (
-                      <div className="flex justify-center py-12">
-                        <Loader2 className="size-8 text-primary animate-spin" />
-                      </div>
-                    ) : (
-                      <>
                         {sortedMessages.map((msg) => {
                           const mine = msg.senderId === authUser?.id;
                           return (
@@ -95,8 +90,8 @@ const Main = ({
                             </div>
                           </div>
                         )}
-                      </>
-                    )}
+                      </div>
+                    
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>

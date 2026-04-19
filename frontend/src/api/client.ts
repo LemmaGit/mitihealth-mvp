@@ -53,7 +53,6 @@ export const apiClient = async (
       errorData = {};
     }
     const message = errorData.message || "An error occurred while fetching data.";
-
     if (response.status === 401 || response.status === 403) {
       throw new UnauthorizedError(message, errorData);
     }

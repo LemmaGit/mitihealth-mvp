@@ -76,7 +76,7 @@ return (
                       >
                         <div className="relative shrink-0">
                           <Avatar className="w-12 h-12">
-                            <AvatarImage src={user.imageUrl ||user.avatar} alt={user.name} />
+                            <AvatarImage src={user.imageUrl ||  user.profilePicture ||user.avatar} alt={user.name} />
                             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                           </Avatar>
                           {user.online && (

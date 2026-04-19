@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback, Suspense, lazy } from "react";
 import {
   Send,
   Image as ImageIcon,
   Loader2,
+  Loader,
 } from "lucide-react";
 import { useSearchParams} from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,8 +13,11 @@ import { Textarea } from "../components/ui/textarea";
 import Aside from "../components/message/Message.Aside";
 import Placeholder from "../components/message/Message.Placeholder";
 import Footer from "../components/message/Message.Footer";
-import Main from "../components/message/Message.Main";
+// import Main from "../components/message/Message.Main";
+const Main = lazy(() => import("../components/message/Message.Main"));
+
 import useRoomSession from "../hooks/useRoomSession";
+import { HashLoader } from "react-spinners";
 
 type ApiMessage = {
   _id: string;
@@ -70,7 +74,6 @@ function formatMessageTime(iso?: string) {
 }
 
 
-// Separate component for the room session header to handle real-time timer updates
 const RoomSessionHeader = ({ roomSession }: { roomSession: any }) => {
   const [timeLeft, setTimeLeft] = useState(roomSession.timeRemaining || 0);
 
@@ -123,7 +126,6 @@ const MessagesPage = () => {
   const queryClient = useQueryClient();
   const roomSession = useRoomSession();
   
-  // For room sessions, get the correct receiverId from consultation details
   const actualReceiverId = roomSession.isRoomSession && roomSession.consultationDetails
     ? (authUser?.unsafeMetadata?.role === "practitioner" 
         ? roomSession.consultationDetails.patientId 
@@ -181,10 +183,9 @@ const MessagesPage = () => {
     () => initialsFromName(peerName),
     [peerName],
   );
-
-  const { data: currentMessages = [], isLoading: messagesLoading } = useQuery({
+  const { data: currentMessages = []} = useQuery({
     queryKey: ["messages", actualReceiverId],
-    queryFn: () => common.getMessages(actualReceiverId) as Promise<ApiMessage[]>,
+    queryFn: () => common.getMessages(actualReceiverId),
     enabled: !!actualReceiverId,
   });
 
@@ -193,8 +194,10 @@ const MessagesPage = () => {
     queryFn: () => common.getUsersForSidebar() as Promise<any[]>,
   });
 
+  //TODO: this needs to be figured out 
   const displayUsers = useMemo(() => {
     const users = sidebarUsers as any[];
+    console.log(users,"users in sidebar")
     const admin = users.find(u => u.role === "admin");
     const others = users.filter(u => u.role !== "admin");
     if (admin) return [admin, ...others];
@@ -347,17 +350,22 @@ const MessagesPage = () => {
               {roomSession.isRoomSession && (
                 <RoomSessionHeader roomSession={roomSession} />
               )}
-              <Main
+              <Suspense fallback={<div className="flex flex-col flex-1 justify-center items-center h-full">
+                        <Loader2 className="size-10 text-primary animate-spin" />
+                        <p className="mt-4 text-muted-foreground text-sm animate-pulse">Fetching conversation...</p>
+                      </div>}>
+                <Main
                authUser={authUser} 
-               receiverImage={userInChatWith.imageUrl}
+               receiverImage={userInChatWith?.imageUrl}
                formatMessageTime={formatMessageTime} 
                isPending={sendMutation.isPending} 
                messagesEndRef={messagesEndRef} 
-               messagesLoading={messagesLoading} 
                sortedMessages={sortedMessages} 
                peerInitials={peerInitials}
                />
 
+              </Suspense>
+            
                 <Footer pendingFile={pendingFile} removePendingFile={removePendingFile}>
                   <div className="flex items-center gap-3 bg-muted/50 shadow-inner mx-auto p-2 border border-border/15 rounded-2xl max-w-4xl">
                     <div className="flex gap-1 mb-1">

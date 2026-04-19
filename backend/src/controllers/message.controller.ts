@@ -25,18 +25,14 @@ export const getUsersForSidebar = catchAsync(async (req, res) => {
     )
   )];
 
-  // Get users you've had conversations with
-  const conversationUsers = await User.find({
-    clerkId: { $in: conversationUserIds }
-  });
-
   // Get admin users (excluding self)
+  console.log(loggedInUserId,"loggedInUserId 👂")
   const adminUsers = await User.find({
     clerkId: { $ne: loggedInUserId },
     role: "admin",
   });
+  console.log(adminUsers,"adminUsers 👂")
 
-  // Combine and deduplicate users
   const allUserIds = [
     ...adminUsers.map(u => u.clerkId),
     ...conversationUserIds
